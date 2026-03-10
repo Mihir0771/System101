@@ -1,0 +1,2534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#03030a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>ARISE — Hunter Protocol v3.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ROOT & RESET
+============================================================ */
+:root {
+  --bg0:#020209;--bg1:#07071a;--bg2:#0b0b22;--bgp:rgba(7,7,22,.97);
+  --blue:#00d4ff;--purple:#9b5de5;--gold:#ffd60a;--green:#06ffa5;
+  --red:#ff3c6e;--orange:#ff9500;--pink:#ff79c6;--white:#e2e8f0;
+  --dim:#94a3b8;--muted:#3d4a5c;
+  --b0:rgba(0,212,255,0);--b10:rgba(0,212,255,.1);--b20:rgba(0,212,255,.2);
+  --b30:rgba(0,212,255,.3);--b50:rgba(0,212,255,.5);
+  --p10:rgba(155,93,229,.1);--p20:rgba(155,93,229,.2);--p30:rgba(155,93,229,.3);
+  --g10:rgba(255,214,10,.1);--g20:rgba(255,214,10,.2);--g30:rgba(255,214,10,.3);
+  --r10:rgba(255,60,110,.1);--r20:rgba(255,60,110,.2);--r30:rgba(255,60,110,.3);
+  --glow-b:0 0 20px rgba(0,212,255,.4),0 0 60px rgba(0,212,255,.15);
+  --glow-p:0 0 20px rgba(155,93,229,.4),0 0 60px rgba(155,93,229,.15);
+  --glow-g:0 0 20px rgba(255,214,10,.4),0 0 60px rgba(255,214,10,.15);
+  --glow-r:0 0 20px rgba(255,60,110,.4),0 0 60px rgba(255,60,110,.15);
+  --fd:'Orbitron',monospace;--fb:'Rajdhani',sans-serif;--fm:'Share Tech Mono',monospace;
+  --nav-w:220px;--hud-h:68px;--transition:.25s cubic-bezier(.4,0,.2,1);
+  --radius:12px;--radius-sm:8px;--radius-lg:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{background:var(--bg0);color:var(--white);font-family:var(--fb);overflow-x:hidden;min-height:100vh;-webkit-font-smoothing:antialiased;}
+::selection{background:var(--b30);color:var(--white);}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--b30);border-radius:2px;}
+a{color:inherit;text-decoration:none;}
+button{cursor:pointer;font-family:var(--fd);}
+input,select,textarea{font-family:var(--fb);}
+
+/* ============================================================
+   CANVAS BG
+============================================================ */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.7;}
+
+/* ============================================================
+   BOOT SCREEN
+============================================================ */
+#boot-screen{position:fixed;inset:0;z-index:9999;background:var(--bg0);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+#boot-screen.hidden{animation:boot-out .8s ease forwards;}
+@keyframes boot-out{to{opacity:0;pointer-events:none;}}
+.boot-logo{font-family:var(--fd);font-size:clamp(32px,8vw,64px);font-weight:900;color:var(--blue);text-shadow:var(--glow-b);letter-spacing:8px;animation:boot-pulse 1.5s ease infinite;}
+@keyframes boot-pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.boot-sub{font-family:var(--fm);font-size:13px;color:var(--dim);letter-spacing:3px;}
+.boot-bar-wrap{width:280px;height:3px;background:var(--b10);border-radius:2px;overflow:hidden;}
+.boot-bar{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));width:0%;animation:boot-fill 2s ease forwards;}
+@keyframes boot-fill{to{width:100%;}}
+
+/* ============================================================
+   HUD (TOP BAR)
+============================================================ */
+#hud{position:fixed;top:0;left:0;right:0;z-index:300;height:var(--hud-h);background:linear-gradient(180deg,rgba(2,2,9,.98),rgba(2,2,9,.92));border-bottom:1px solid var(--b20);display:flex;align-items:center;padding:0 16px;gap:12px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+.hud-rank-badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:18px;font-weight:900;border:2px solid;cursor:pointer;flex-shrink:0;transition:var(--transition);}
+.rank-E{color:#9ca3af;border-color:#9ca3af;}
+.rank-D{color:#34d399;border-color:#34d399;box-shadow:0 0 10px rgba(52,211,153,.3);}
+.rank-C{color:#60a5fa;border-color:#60a5fa;box-shadow:0 0 10px rgba(96,165,250,.3);}
+.rank-B{color:#a855f7;border-color:#a855f7;box-shadow:0 0 14px rgba(168,85,247,.4);}
+.rank-A{color:#f97316;border-color:#f97316;box-shadow:0 0 14px rgba(249,115,22,.4);}
+.rank-S{color:var(--gold);border-color:var(--gold);box-shadow:var(--glow-g);}
+.rank-SS{color:var(--red);border-color:var(--red);box-shadow:var(--glow-r);animation:ss-throb 2s infinite;}
+@keyframes ss-throb{0%,100%{box-shadow:0 0 14px rgba(255,60,110,.5);}50%{box-shadow:0 0 30px rgba(255,60,110,.9),0 0 60px rgba(255,60,110,.3);}}
+.hud-info{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.hud-name{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--blue);text-shadow:0 0 10px var(--b50);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hud-title-text{font-size:10px;color:var(--gold);font-family:var(--fm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hud-lvl-tag{background:var(--b10);border:1px solid var(--b30);border-radius:3px;padding:1px 6px;font-family:var(--fd);font-size:9px;color:var(--blue);display:inline-block;margin-top:1px;}
+.hud-xp-zone{flex:1;min-width:80px;max-width:340px;}
+.hud-xp-row{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);font-family:var(--fm);margin-bottom:3px;}
+.xp-rail{height:8px;background:var(--b10);border-radius:4px;border:1px solid var(--b20);overflow:hidden;}
+.xp-fill{height:100%;background:linear-gradient(90deg,#0066dd,var(--blue),var(--purple));border-radius:4px;transition:width 1.4s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;}
+.xp-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.5) 50%,transparent 100%);animation:xp-sheen 2.5s ease infinite;}
+@keyframes xp-sheen{0%{transform:translateX(-200%);}100%{transform:translateX(400%);}}
+.hud-mini-stats{display:flex;gap:10px;flex-shrink:0;}
+.hud-ms{display:flex;flex-direction:column;align-items:center;}
+.hud-ms-l{font-family:var(--fd);font-size:8px;color:var(--muted);}
+.hud-ms-v{font-family:var(--fd);font-size:13px;font-weight:700;color:var(--blue);}
+.hud-nav-btns{display:flex;gap:6px;flex-shrink:0;}
+.hud-btn{padding:6px 10px;background:var(--b10);border:1px solid var(--b20);border-radius:6px;color:var(--blue);font-family:var(--fd);font-size:9px;letter-spacing:.5px;transition:var(--transition);white-space:nowrap;display:flex;align-items:center;gap:4px;}
+.hud-btn:hover{background:var(--b20);box-shadow:var(--glow-b);}
+.hud-btn.ai{color:var(--purple);border-color:var(--p20);background:var(--p10);}
+.hud-btn.ai:hover{background:var(--p20);box-shadow:var(--glow-p);}
+#hamburger{display:none;flex-direction:column;gap:5px;padding:8px;background:var(--b10);border:1px solid var(--b20);border-radius:8px;flex-shrink:0;}
+#hamburger span{display:block;width:20px;height:2px;background:var(--blue);border-radius:1px;transition:var(--transition);}
+#hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+#hamburger.open span:nth-child(2){opacity:0;}
+#hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+/* ============================================================
+   SIDEBAR NAV
+============================================================ */
+#nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:290;backdrop-filter:blur(4px);}
+#nav{position:fixed;left:0;top:var(--hud-h);bottom:0;width:var(--nav-w);background:rgba(2,2,9,.98);border-right:1px solid var(--b20);z-index:295;padding:12px 0 20px;overflow-y:auto;backdrop-filter:blur(20px);transition:transform var(--transition);}
+.nav-section{margin-bottom:4px;}
+.nav-label{padding:10px 16px 4px;font-size:8px;color:var(--muted);font-family:var(--fd);letter-spacing:2.5px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;transition:var(--transition);border-left:3px solid transparent;color:var(--dim);font-size:13px;font-weight:500;position:relative;user-select:none;}
+.nav-item:hover{background:var(--b10);color:var(--blue);border-left-color:var(--b50);}
+.nav-item.active{background:rgba(0,212,255,.08);color:var(--blue);border-left-color:var(--blue);}
+.nav-item.active .nav-icon{filter:drop-shadow(0 0 6px var(--blue));}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.nav-label-text{flex:1;}
+.nav-badge{background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:8px;font-family:var(--fd);min-width:16px;text-align:center;flex-shrink:0;}
+.nav-streak{color:var(--orange);font-family:var(--fm);font-size:10px;flex-shrink:0;}
+
+/* ============================================================
+   MAIN CONTENT
+============================================================ */
+#main{margin-left:var(--nav-w);margin-top:var(--hud-h);padding:20px;min-height:calc(100vh - var(--hud-h));position:relative;z-index:1;}
+.tab-view{display:none;animation:tab-in .3s ease;}
+.tab-view.active{display:block;}
+@keyframes tab-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.page-hdr{margin-bottom:20px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.page-title{font-family:var(--fd);font-size:clamp(16px,4vw,22px);font-weight:800;color:var(--blue);text-shadow:0 0 20px rgba(0,212,255,.3);}
+.page-sub{font-size:13px;color:var(--dim);margin-top:3px;}
+.page-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* ============================================================
+   PANELS
+============================================================ */
+.panel{background:var(--bgp);border:1px solid var(--b20);border-radius:var(--radius);padding:16px;position:relative;overflow:hidden;}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:.5;pointer-events:none;}
+.panel.p-gold::before{background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.panel.p-purple::before{background:linear-gradient(90deg,transparent,var(--purple),transparent);}
+.panel.p-green::before{background:linear-gradient(90deg,transparent,var(--green),transparent);}
+.panel.p-red::before{background:linear-gradient(90deg,transparent,var(--red),transparent);}
+.panel.p-orange::before{background:linear-gradient(90deg,transparent,var(--orange),transparent);}
+.ptitle{font-family:var(--fd);font-size:10px;color:var(--blue);letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.ptitle::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--b30),transparent);}
+.ptitle.gold{color:var(--gold);}
+.ptitle.gold::after{background:linear-gradient(90deg,var(--g30),transparent);}
+.ptitle.purple{color:var(--purple);}
+.ptitle.purple::after{background:linear-gradient(90deg,var(--p30),transparent);}
+.ptitle.green{color:var(--green);}
+.ptitle.green::after{background:linear-gradient(90deg,rgba(6,255,165,.3),transparent);}
+.ptitle.red{color:var(--red);}
+.ptitle.red::after{background:linear-gradient(90deg,var(--r30),transparent);}
+.ptitle.orange{color:var(--orange);}
+
+/* ============================================================
+   GRIDS
+============================================================ */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.mb1{margin-bottom:8px;}.mb2{margin-bottom:14px;}.mb3{margin-bottom:20px;}
+
+/* ============================================================
+   STAT CARDS
+============================================================ */
+.sc{background:rgba(0,0,0,.35);border:1px solid var(--b20);border-radius:var(--radius-sm);padding:12px;text-align:center;transition:var(--transition);}
+.sc:hover{border-color:var(--b30);transform:translateY(-1px);}
+.sc-v{font-family:var(--fd);font-size:clamp(22px,5vw,30px);font-weight:800;color:var(--blue);line-height:1;}
+.sc-l{font-size:10px;color:var(--dim);margin-top:4px;font-family:var(--fm);}
+.sc.blue .sc-v{color:var(--blue);}
+.sc.purple .sc-v{color:var(--purple);}
+.sc.gold .sc-v{color:var(--gold);}
+.sc.green .sc-v{color:var(--green);}
+.sc.red .sc-v{color:var(--red);}
+.sc.orange .sc-v{color:var(--orange);}
+
+/* ============================================================
+   STAT BARS
+============================================================ */
+.sbar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.sbar-key{font-family:var(--fd);font-size:9px;color:var(--dim);width:32px;flex-shrink:0;letter-spacing:1px;}
+.sbar-rail{flex:1;height:7px;background:rgba(255,255,255,.04);border-radius:4px;overflow:hidden;}
+.sbar-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+.sf-int{background:linear-gradient(90deg,#1d4ed8,#60a5fa);}
+.sf-str{background:linear-gradient(90deg,#b91c1c,#f97316);}
+.sf-end{background:linear-gradient(90deg,#047857,var(--green));}
+.sf-agi{background:linear-gradient(90deg,#b45309,var(--gold));}
+.sf-per{background:linear-gradient(90deg,#6d28d9,var(--purple));}
+.sf-luk{background:linear-gradient(90deg,#be185d,var(--pink));}
+.sbar-val{font-family:var(--fd);font-size:11px;color:var(--white);width:28px;text-align:right;flex-shrink:0;}
+
+/* ============================================================
+   BUTTONS
+============================================================ */
+.btn{padding:8px 16px;border-radius:var(--radius-sm);font-family:var(--fd);font-size:10px;cursor:pointer;transition:var(--transition);border:1px solid;letter-spacing:.5px;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;user-select:none;}
+.btn:active{transform:scale(.97);}
+.btn-blue{background:var(--b10);border-color:var(--b30);color:var(--blue);}
+.btn-blue:hover{background:var(--b20);box-shadow:var(--glow-b);}
+.btn-green{background:rgba(6,255,165,.08);border-color:rgba(6,255,165,.3);color:var(--green);}
+.btn-green:hover{background:rgba(6,255,165,.18);box-shadow:0 0 20px rgba(6,255,165,.3);}
+.btn-red{background:var(--r10);border-color:var(--r30);color:var(--red);}
+.btn-red:hover{background:var(--r20);box-shadow:var(--glow-r);}
+.btn-gold{background:var(--g10);border-color:var(--g30);color:var(--gold);}
+.btn-gold:hover{background:var(--g20);box-shadow:var(--glow-g);}
+.btn-purple{background:var(--p10);border-color:var(--p30);color:var(--purple);}
+.btn-purple:hover{background:var(--p20);box-shadow:var(--glow-p);}
+.btn-orange{background:rgba(255,149,0,.1);border-color:rgba(255,149,0,.3);color:var(--orange);}
+.btn-orange:hover{background:rgba(255,149,0,.2);box-shadow:0 0 20px rgba(255,149,0,.3);}
+.btn-sm{padding:5px 10px;font-size:9px;}
+.btn-lg{padding:12px 28px;font-size:12px;}
+.btn-full{width:100%;margin-top:8px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none;}
+
+/* ============================================================
+   FORMS
+============================================================ */
+.fg{margin-bottom:14px;}
+.fl{font-family:var(--fd);font-size:9px;color:var(--dim);letter-spacing:1.5px;margin-bottom:6px;display:block;}
+.fi{width:100%;background:rgba(0,212,255,.04);border:1px solid var(--b20);border-radius:var(--radius-sm);color:var(--white);font-family:var(--fb);font-size:14px;padding:10px 14px;transition:var(--transition);outline:none;}
+.fi:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,212,255,.12);background:rgba(0,212,255,.07);}
+.fi::placeholder{color:var(--muted);}
+.fi.mono{font-family:var(--fm);font-size:12px;letter-spacing:.5px;}
+select.fi{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300d4ff'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:18px;padding-right:36px;}
+select.fi option{background:var(--bg1);color:var(--white);}
+textarea.fi{resize:vertical;min-height:80px;line-height:1.6;}
+input[type="range"]{width:100%;height:6px;-webkit-appearance:none;appearance:none;background:var(--b20);border-radius:3px;outline:none;cursor:pointer;}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px rgba(0,212,255,.5);cursor:pointer;}
+input[type="range"]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px rgba(0,212,255,.5);cursor:pointer;border:none;}
+input[type="number"]{-moz-appearance:textfield;appearance:textfield;}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;}
+
+/* ============================================================
+   QUEST CARDS
+============================================================ */
+.qcard{background:rgba(0,0,0,.4);border:1px solid var(--b20);border-radius:var(--radius);padding:14px;margin-bottom:10px;transition:var(--transition);position:relative;overflow:hidden;}
+.qcard:hover{border-color:var(--b40,rgba(0,212,255,.4));transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,255,.08);}
+.qcard.done{border-color:rgba(6,255,165,.2);opacity:.6;}
+.qcard.done::after{content:'✓ COMPLETE';position:absolute;top:12px;right:12px;background:rgba(6,255,165,.12);border:1px solid rgba(6,255,165,.3);color:var(--green);font-family:var(--fd);font-size:8px;padding:2px 8px;border-radius:3px;letter-spacing:1px;}
+.qcard.emergency{border-color:rgba(255,60,110,.4);animation:eq-pulse 2s ease infinite;}
+@keyframes eq-pulse{0%,100%{box-shadow:0 0 0 rgba(255,60,110,0);}50%{box-shadow:0 0 20px rgba(255,60,110,.3);}}
+.qtag{display:inline-flex;align-items:center;font-family:var(--fd);font-size:8px;padding:2px 8px;border-radius:3px;letter-spacing:1px;margin-bottom:8px;}
+.qt-daily{background:var(--b10);color:var(--blue);border:1px solid var(--b30);}
+.qt-weekly{background:var(--p10);color:var(--purple);border:1px solid var(--p30);}
+.qt-special{background:var(--g10);color:var(--gold);border:1px solid var(--g30);}
+.qt-emergency{background:var(--r10);color:var(--red);border:1px solid var(--r30);}
+.qt-main{background:rgba(255,149,0,.1);color:var(--orange);border:1px solid rgba(255,149,0,.3);}
+.qt-ai{background:rgba(255,121,198,.1);color:var(--pink);border:1px solid rgba(255,121,198,.3);}
+.q-title{font-family:var(--fd);font-size:12px;color:var(--white);margin-bottom:5px;}
+.q-desc{font-size:13px;color:var(--dim);line-height:1.5;margin-bottom:10px;}
+.q-rewards{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:9px;}
+.qr{font-size:11px;font-family:var(--fm);}
+.qr.xp{color:var(--blue);}
+.qr.stat{color:var(--purple);}
+.qr.title{color:var(--gold);}
+.q-prog-rail{height:4px;background:rgba(255,255,255,.05);border-radius:2px;margin-bottom:7px;overflow:hidden;}
+.q-prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px;transition:width .5s ease;}
+.q-acts{display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap;}
+.q-count{font-family:var(--fm);font-size:10px;color:var(--muted);}
+
+/* ============================================================
+   CHAPTER GRID
+============================================================ */
+.ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:7px;margin-top:10px;}
+.ch-item{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:10px;cursor:pointer;transition:var(--transition);user-select:none;}
+.ch-item:hover{border-color:var(--b30);transform:translateY(-1px);}
+.ch-item.done{background:rgba(6,255,165,.05);border-color:rgba(6,255,165,.2);}
+.ch-item.doing{background:var(--b10);border-color:var(--b30);}
+.ch-n{font-size:11px;color:var(--white);margin-bottom:3px;line-height:1.3;}
+.ch-p{font-family:var(--fm);font-size:9px;color:var(--muted);}
+.ch-bar{height:3px;background:rgba(255,255,255,.05);border-radius:2px;margin-top:5px;overflow:hidden;}
+.ch-fill{height:100%;border-radius:2px;transition:width .5s ease;}
+
+/* ============================================================
+   AI CHAT
+============================================================ */
+#ai-chat-area{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:rgba(0,0,0,.4);border-radius:var(--radius-sm);border:1px solid var(--b20);}
+.chat-msg{max-width:88%;padding:12px 15px;border-radius:10px;font-size:13px;line-height:1.65;animation:msg-in .3s ease;}
+@keyframes msg-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.msg-sys{align-self:flex-start;background:var(--p10);border:1px solid var(--p20);border-radius:2px 10px 10px 10px;}
+.msg-sys::before{content:'⚡ THE SYSTEM';display:block;font-family:var(--fd);font-size:8px;color:var(--purple);margin-bottom:5px;letter-spacing:1.5px;}
+.msg-user{align-self:flex-end;background:var(--b10);border:1px solid var(--b20);border-radius:10px 2px 10px 10px;}
+.msg-user::before{content:'HUNTER';display:block;font-family:var(--fd);font-size:8px;color:var(--blue);margin-bottom:5px;letter-spacing:1.5px;}
+.msg-error{align-self:flex-start;background:var(--r10);border:1px solid var(--r20);border-radius:2px 10px 10px 10px;}
+.msg-error::before{content:'⚠ SYSTEM ERROR';display:block;font-family:var(--fd);font-size:8px;color:var(--red);margin-bottom:5px;letter-spacing:1.5px;}
+.chat-typing-wrap{align-self:flex-start;background:var(--p10);border:1px solid var(--p20);border-radius:2px 10px 10px 10px;padding:14px 18px;}
+.typing-dots{display:flex;gap:5px;}
+.td{width:8px;height:8px;border-radius:50%;background:var(--purple);animation:td-bounce .8s ease infinite;}
+.td:nth-child(2){animation-delay:.15s;}
+.td:nth-child(3){animation-delay:.3s;}
+@keyframes td-bounce{0%,100%{transform:translateY(0)scale(.8);opacity:.5;}50%{transform:translateY(-8px)scale(1.1);opacity:1;}}
+.chat-row{display:flex;gap:8px;margin-top:12px;}
+.chat-row .fi{flex:1;min-width:0;}
+
+/* ============================================================
+   TIMER
+============================================================ */
+.timer-big{font-family:var(--fd);font-size:clamp(42px,10vw,60px);font-weight:700;color:var(--blue);text-shadow:var(--glow-b);letter-spacing:4px;text-align:center;transition:color .5s;}
+.timer-big.break{color:var(--green);text-shadow:0 0 20px rgba(6,255,165,.4);}
+.timer-big.urgent{color:var(--red);text-shadow:var(--glow-r);animation:timer-throb .5s ease infinite;}
+@keyframes timer-throb{0%,100%{transform:scale(1);}50%{transform:scale(1.03);}}
+.timer-label{font-family:var(--fm);font-size:11px;color:var(--dim);text-align:center;margin-bottom:6px;}
+.timer-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.pomo-dots{display:flex;gap:6px;justify-content:center;margin-bottom:12px;}
+.pomo-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid var(--b20);transition:.3s;}
+.pomo-dot.done{background:var(--blue);border-color:var(--blue);box-shadow:0 0 8px rgba(0,212,255,.5);}
+.pomo-dot.active{background:var(--purple);border-color:var(--purple);box-shadow:0 0 8px rgba(155,93,229,.5);}
+
+/* ============================================================
+   COUNTDOWN
+============================================================ */
+.cd-grid{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.cd-unit{text-align:center;background:var(--b10);border:1px solid var(--b20);border-radius:var(--radius-sm);padding:10px 14px;min-width:65px;}
+.cd-v{font-family:var(--fd);font-size:clamp(22px,6vw,32px);font-weight:700;color:var(--blue);line-height:1;}
+.cd-l{font-size:9px;color:var(--muted);font-family:var(--fm);margin-top:3px;}
+
+/* ============================================================
+   EXERCISE ROWS
+============================================================ */
+.ex-row{display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-sm);margin-bottom:7px;transition:var(--transition);}
+.ex-row:hover{border-color:var(--b20);}
+.ex-info{flex:1;min-width:0;}
+.ex-name{font-size:13px;font-weight:500;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ex-cat{font-size:10px;color:var(--muted);font-family:var(--fd);}
+.ex-nums{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.ex-inp{background:var(--b10);border:1px solid var(--b20);border-radius:5px;color:var(--white);font-family:var(--fm);font-size:12px;padding:4px 6px;width:50px;text-align:center;outline:none;transition:var(--transition);}
+.ex-inp:focus{border-color:var(--blue);}
+.ex-sep{font-size:10px;color:var(--muted);}
+
+/* ============================================================
+   ACHIEVEMENTS
+============================================================ */
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.ach-card{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:14px;transition:var(--transition);opacity:.4;filter:grayscale(.8);}
+.ach-card.unlocked{opacity:1;filter:none;border-color:var(--g20);box-shadow:0 0 16px rgba(255,214,10,.06);}
+.ach-card:hover{transform:translateY(-2px);}
+.ach-icon{font-size:28px;margin-bottom:7px;}
+.ach-name{font-family:var(--fd);font-size:10px;color:var(--white);margin-bottom:3px;}
+.ach-desc{font-size:11px;color:var(--dim);}
+
+/* ============================================================
+   SKILLS
+============================================================ */
+.skill-card{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:12px;text-align:center;transition:var(--transition);opacity:.35;}
+.skill-card.can-unlock{opacity:.7;border-color:var(--b20);}
+.skill-card.unlocked{opacity:1;border-color:var(--p30);box-shadow:var(--glow-p);}
+.skill-card:hover{transform:translateY(-2px);}
+.sk-icon{font-size:28px;margin-bottom:6px;}
+.sk-name{font-family:var(--fd);font-size:9px;color:var(--white);margin-bottom:4px;}
+.sk-desc{font-size:10px;color:var(--dim);}
+.sk-req{font-size:9px;color:var(--muted);font-family:var(--fm);margin-top:4px;}
+
+/* ============================================================
+   TITLES
+============================================================ */
+.title-card{background:rgba(0,0,0,.35);border:1px solid var(--g20);border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;transition:var(--transition);}
+.title-card:not(.owned){opacity:.4;border-color:rgba(255,255,255,.06);filter:grayscale(.7);}
+.title-card:hover{transform:translateX(3px);}
+.title-ico{font-size:22px;flex-shrink:0;}
+.title-info{flex:1;min-width:0;}
+.title-n{font-family:var(--fd);font-size:11px;color:var(--gold);}
+.title-bonus{font-size:11px;color:var(--dim);font-family:var(--fm);}
+
+/* ============================================================
+   WORKOUT HISTORY
+============================================================ */
+.wh-item{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.wh-item:last-child{border-bottom:none;}
+.wh-top{display:flex;justify-content:space-between;align-items:center;}
+.wh-type{font-family:var(--fd);font-size:10px;color:var(--white);}
+.wh-xp{font-family:var(--fm);font-size:11px;color:var(--green);}
+.wh-meta{font-family:var(--fm);font-size:9px;color:var(--muted);margin-top:2px;}
+
+/* ============================================================
+   SYSTEM QUOTE
+============================================================ */
+.sq{background:var(--p10);border-left:3px solid var(--purple);border-radius:0 8px 8px 0;padding:12px 16px;font-style:italic;font-size:13px;color:var(--dim);line-height:1.6;}
+
+/* ============================================================
+   ALERTS
+============================================================ */
+.alert{padding:12px 14px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:10px;line-height:1.5;}
+.alert-info{background:var(--b10);border:1px solid var(--b20);color:var(--dim);}
+.alert-warn{background:var(--g10);border:1px solid var(--g20);color:var(--dim);}
+.alert-error{background:var(--r10);border:1px solid var(--r20);color:var(--dim);}
+.alert-success{background:rgba(6,255,165,.08);border:1px solid rgba(6,255,165,.2);color:var(--dim);}
+
+/* ============================================================
+   WEEKLY SPLIT
+============================================================ */
+.ws-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;}
+.ws-day-l{font-family:var(--fd);font-size:8px;color:var(--muted);margin-bottom:4px;}
+.ws-bar{height:32px;border-radius:4px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);transition:var(--transition);}
+.ws-bar.active{background:var(--green);border-color:rgba(6,255,165,.4);box-shadow:0 0 10px rgba(6,255,165,.25);}
+
+/* ============================================================
+   MODALS
+============================================================ */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:16px;animation:fade-in .3s ease;}
+@keyframes fade-in{from{opacity:0;}to{opacity:1;}}
+.modal-box{background:var(--bg1);border:1px solid var(--b30);border-radius:var(--radius-lg);padding:24px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;position:relative;animation:modal-pop .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes modal-pop{from{transform:scale(.85)translateY(20px);opacity:0;}to{transform:scale(1)translateY(0);opacity:1;}}
+.modal-box::before{content:'';position:absolute;top:0;left:16px;right:16px;height:1.5px;background:linear-gradient(90deg,transparent,var(--blue),var(--purple),transparent);border-radius:16px;}
+.modal-title{font-family:var(--fd);font-size:18px;font-weight:700;color:var(--blue);margin-bottom:4px;}
+.modal-sub{font-size:14px;color:var(--dim);margin-bottom:18px;}
+.modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--dim);width:28px;height:28px;font-size:14px;transition:var(--transition);display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{color:var(--white);background:rgba(255,255,255,.12);}
+
+/* ============================================================
+   LEVEL UP OVERLAY
+============================================================ */
+#lu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:800;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;}
+#lu-overlay.show{display:flex;animation:fade-in .4s ease;}
+.lu-pre{font-family:var(--fd);font-size:11px;color:var(--dim);letter-spacing:4px;margin-bottom:8px;}
+.lu-num{font-family:var(--fd);font-size:clamp(60px,18vw,100px);font-weight:900;color:var(--gold);text-shadow:var(--glow-g);line-height:1;animation:lu-scale 1.2s cubic-bezier(.34,1.56,.64,1) infinite alternate;}
+@keyframes lu-scale{from{transform:scale(1);}to{transform:scale(1.05);}}
+.lu-label{font-family:var(--fd);font-size:clamp(14px,4vw,20px);color:var(--blue);margin-top:8px;text-shadow:var(--glow-b);}
+.lu-rewards{margin-top:16px;display:flex;flex-direction:column;gap:6px;}
+.lu-rw{font-size:14px;color:var(--white);animation:lu-rw-in .5s ease both;}
+@keyframes lu-rw-in{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+#lu-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+
+/* ============================================================
+   RANK UP OVERLAY
+============================================================ */
+#ru-overlay{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:810;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;}
+#ru-overlay.show{display:flex;animation:fade-in .3s ease;}
+.ru-from{font-family:var(--fd);font-size:clamp(40px,12vw,70px);font-weight:900;line-height:1;opacity:.4;}
+.ru-arrow{font-size:clamp(28px,8vw,44px);color:var(--gold);margin:8px 0;animation:arrow-throb 1s ease infinite;}
+@keyframes arrow-throb{0%,100%{transform:scale(1);}50%{transform:scale(1.25);}}
+.ru-to{font-family:var(--fd);font-size:clamp(60px,18vw,100px);font-weight:900;text-shadow:var(--glow-g);animation:ru-appear 1s cubic-bezier(.34,1.56,.64,1) .3s both;}
+@keyframes ru-appear{from{transform:scale(0)rotate(-20deg);opacity:0;}to{transform:scale(1)rotate(0);opacity:1;}}
+
+/* ============================================================
+   ONBOARD
+============================================================ */
+.ob-step{display:none;}
+.ob-step.active{display:block;animation:tab-in .3s ease;}
+.ob-dots{display:flex;gap:7px;justify-content:center;margin-bottom:20px;}
+.ob-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.1);transition:.3s;}
+.ob-dot.cur{background:var(--blue);box-shadow:0 0 8px rgba(0,212,255,.5);}
+.ob-dot.done{background:var(--green);}
+.class-select-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.class-opt{background:rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:12px;cursor:pointer;transition:var(--transition);user-select:none;}
+.class-opt:hover{border-color:var(--b30);}
+.class-opt.selected{border-color:var(--blue);background:var(--b10);box-shadow:var(--glow-b);}
+.class-opt-name{font-family:var(--fd);font-size:11px;color:var(--white);margin-bottom:4px;}
+.class-opt-desc{font-size:11px;color:var(--dim);}
+
+/* ============================================================
+   TOAST
+============================================================ */
+#toast-wrap{position:fixed;bottom:20px;right:16px;z-index:9000;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:calc(100vw - 32px);}
+.toast{padding:12px 16px;border-radius:var(--radius);font-family:var(--fb);font-size:13px;font-weight:500;min-width:260px;max-width:360px;border-left:4px solid;backdrop-filter:blur(16px);animation:t-in .4s cubic-bezier(.34,1.56,.64,1);pointer-events:all;cursor:pointer;}
+.toast.exiting{animation:t-out .3s ease forwards;}
+@keyframes t-in{from{transform:translateX(110%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+@keyframes t-out{from{transform:translateX(0);opacity:1;}to{transform:translateX(110%);opacity:0;}}
+.toast.info{background:rgba(0,212,255,.1);border-color:var(--blue);box-shadow:var(--glow-b);}
+.toast.success{background:rgba(6,255,165,.08);border-color:var(--green);box-shadow:0 0 16px rgba(6,255,165,.2);}
+.toast.warning{background:var(--g10);border-color:var(--gold);box-shadow:var(--glow-g);}
+.toast.error{background:var(--r10);border-color:var(--red);box-shadow:var(--glow-r);}
+
+/* ============================================================
+   MISC UTILITIES
+============================================================ */
+.txt-blue{color:var(--blue);} .txt-purple{color:var(--purple);} .txt-gold{color:var(--gold);}
+.txt-green{color:var(--green);} .txt-red{color:var(--red);} .txt-dim{color:var(--dim);}
+.fd{font-family:var(--fd);} .fm{font-family:var(--fm);}
+.flex{display:flex;} .flex-c{display:flex;align-items:center;justify-content:center;}
+.ai-c{align-items:center;} .jc-b{justify-content:space-between;} .gap1{gap:6px;} .gap2{gap:10px;} .gap3{gap:14px;}
+.fw{flex-wrap:wrap;}
+.divider{border:none;border-top:1px solid rgba(255,255,255,.05);margin:14px 0;}
+.line-dec{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);margin:14px 0;}
+.tag{display:inline-block;padding:2px 8px;border-radius:3px;font-size:9px;font-family:var(--fd);border:1px solid;letter-spacing:.5px;}
+
+/* ============================================================
+   MOBILE RESPONSIVE
+============================================================ */
+@media(max-width:900px){
+  :root{--nav-w:0px;}
+  #nav{transform:translateX(-220px);width:220px;}
+  #nav.open{transform:translateX(0);}
+  #nav-overlay{display:block;opacity:0;pointer-events:none;transition:.25s;}
+  #nav-overlay.show{opacity:1;pointer-events:all;}
+  #hamburger{display:flex;}
+  .hud-mini-stats{display:none;}
+  .hud-nav-btns{display:none;}
+  #main{margin-left:0;padding:14px;}
+  .hud-xp-zone{max-width:160px;}
+  .g2,.g3,.g4{grid-template-columns:1fr;}
+  .g2.keep{grid-template-columns:1fr 1fr;}
+  .cd-unit{min-width:55px;}
+  .ch-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));}
+  .ach-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
+  .class-select-grid{grid-template-columns:1fr;}
+}
+@media(max-width:480px){
+  :root{--hud-h:60px;}
+  .hud-rank-badge{width:38px;height:38px;font-size:15px;}
+  .hud-name{font-size:13px;}
+  .hud-xp-zone{max-width:120px;}
+  #main{padding:12px;}
+  .panel{padding:14px;}
+  .timer-big{font-size:38px;}
+  .g2.keep{grid-template-columns:1fr;}
+  .cd-grid{gap:7px;}
+  .cd-v{font-size:22px;}
+  .cd-unit{min-width:52px;padding:8px;}
+  .modal-box{padding:18px;}
+}
+@media(min-width:901px){
+  #nav{transform:none !important;}
+  #nav-overlay{display:none !important;}
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<!-- ============ BOOT SCREEN ============ -->
+<div id="boot-screen">
+  <div class="boot-logo">⚡ ARISE</div>
+  <div class="boot-sub">HUNTER PROTOCOL v3.0 — INITIALIZING</div>
+  <div class="boot-bar-wrap"><div class="boot-bar"></div></div>
+</div>
+
+<!-- ============ HUD ============ -->
+<div id="hud">
+  <button id="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div id="hud-rank-badge" class="hud-rank-badge rank-E" onclick="showTab('stats')">E</div>
+  <div class="hud-info">
+    <div class="hud-name" id="hud-name">HUNTER</div>
+    <div class="hud-title-text" id="hud-title">[ Unranked ]</div>
+    <div class="hud-lvl-tag" id="hud-lvl">LVL 1</div>
+  </div>
+  <div class="hud-xp-zone">
+    <div class="hud-xp-row"><span>EXP</span><span id="hud-xp-lbl">0 / 100</span></div>
+    <div class="xp-rail"><div class="xp-fill" id="hud-xp-fill" style="width:0%"></div></div>
+  </div>
+  <div class="hud-mini-stats">
+    <div class="hud-ms"><div class="hud-ms-l">INT</div><div class="hud-ms-v" id="hms-int">—</div></div>
+    <div class="hud-ms"><div class="hud-ms-l">STR</div><div class="hud-ms-v" id="hms-str">—</div></div>
+    <div class="hud-ms"><div class="hud-ms-l">END</div><div class="hud-ms-v" id="hms-end">—</div></div>
+    <div class="hud-ms"><div class="hud-ms-l">STK</div><div class="hud-ms-v txt-orange" id="hms-stk">0🔥</div></div>
+  </div>
+  <div class="hud-nav-btns">
+    <button class="hud-btn" onclick="showTab('quests')">📋 QUESTS</button>
+    <button class="hud-btn ai" onclick="showTab('ai')">⚡ SYSTEM AI</button>
+    <button class="hud-btn" onclick="showTab('settings')">⚙ CONFIG</button>
+  </div>
+</div>
+
+<!-- ============ NAV OVERLAY ============ -->
+<div id="nav-overlay" onclick="closeNav()"></div>
+
+<!-- ============ SIDEBAR ============ -->
+<nav id="nav">
+  <div class="nav-section">
+    <div class="nav-label">CORE</div>
+    <div class="nav-item active" onclick="navTo('dashboard')" data-tab="dashboard"><span class="nav-icon">🏠</span><span class="nav-label-text">Dashboard</span></div>
+    <div class="nav-item" onclick="navTo('stats')" data-tab="stats"><span class="nav-icon">📊</span><span class="nav-label-text">Status Window</span></div>
+    <div class="nav-item" onclick="navTo('quests')" data-tab="quests"><span class="nav-icon">📋</span><span class="nav-label-text">Quest Board</span><span class="nav-badge" id="qbadge" style="display:none">0</span></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">TRAINING</div>
+    <div class="nav-item" onclick="navTo('neet')" data-tab="neet"><span class="nav-icon">🧬</span><span class="nav-label-text">NEET 2026</span></div>
+    <div class="nav-item" onclick="navTo('workout')" data-tab="workout"><span class="nav-icon">⚔️</span><span class="nav-label-text">Training Ground</span></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">SYSTEM</div>
+    <div class="nav-item" onclick="navTo('ai')" data-tab="ai"><span class="nav-icon">🤖</span><span class="nav-label-text">System AI</span></div>
+    <div class="nav-item" onclick="navTo('inventory')" data-tab="inventory"><span class="nav-icon">🎖️</span><span class="nav-label-text">Inventory</span></div>
+    <div class="nav-item" onclick="navTo('settings')" data-tab="settings"><span class="nav-icon">⚙️</span><span class="nav-label-text">Settings</span></div>
+  </div>
+</nav>
+
+<!-- ============================================================
+   MAIN CONTENT
+============================================================ -->
+<main id="main">
+
+<!-- ===== DASHBOARD ===== -->
+<div id="tab-dashboard" class="tab-view active">
+  <div class="page-hdr">
+    <div><div class="page-title">STATUS WINDOW</div><div class="page-sub" id="dash-greeting">Loading Hunter data...</div></div>
+    <div class="page-actions">
+      <button class="btn btn-purple btn-sm" onclick="navTo('ai')">⚡ AI MENTOR</button>
+      <button class="btn btn-gold btn-sm" onclick="navTo('quests')">📋 QUESTS</button>
+    </div>
+  </div>
+  <div class="g4 mb2" id="dash-cards">
+    <div class="sc gold"><div class="sc-v" id="d-level">1</div><div class="sc-l">LEVEL</div></div>
+    <div class="sc green"><div class="sc-v" id="d-streak">0🔥</div><div class="sc-l">DAY STREAK</div></div>
+    <div class="sc purple"><div class="sc-v" id="d-qdone">0</div><div class="sc-l">QUESTS DONE</div></div>
+    <div class="sc blue"><div class="sc-v" id="d-txp">0</div><div class="sc-l">TOTAL XP</div></div>
+  </div>
+  <div class="g2">
+    <div>
+      <div class="panel mb2">
+        <div class="ptitle">⚡ ACTIVE QUESTS</div>
+        <div id="dash-aq"></div>
+        <button class="btn btn-blue btn-full" onclick="navTo('quests')">VIEW ALL QUESTS →</button>
+      </div>
+      <div class="panel p-gold">
+        <div class="ptitle gold">📣 SYSTEM ALERTS</div>
+        <div id="sys-alerts"></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel mb2 p-purple">
+        <div class="ptitle purple">🧬 NEET 2026 OVERVIEW</div>
+        <div class="flex ai-c jc-b mb2">
+          <span class="fd" style="font-size:9px;color:var(--dim);">DAYS TO EXAM</span>
+          <span class="txt-red fd" style="font-size:11px;" id="dash-exam-days">—</span>
+        </div>
+        <div id="dash-subj-bars"></div>
+        <button class="btn btn-purple btn-full" onclick="navTo('neet')">OPEN NEET CHAMBER →</button>
+      </div>
+      <div class="panel p-green">
+        <div class="ptitle green">💪 TODAY'S TRAINING</div>
+        <div class="flex jc-b ai-c mb1">
+          <span class="txt-dim fm" style="font-size:12px;">Workout streak</span>
+          <span class="txt-orange fd" style="font-size:16px;" id="d-wo-stk">0🔥</span>
+        </div>
+        <div class="txt-dim fm mb2" style="font-size:12px;" id="d-today-wo">No workout logged today.</div>
+        <button class="btn btn-green btn-full" onclick="navTo('workout')">GO TO TRAINING GROUND →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STATS ===== -->
+<div id="tab-stats" class="tab-view">
+  <div class="page-hdr">
+    <div><div class="page-title" id="stats-title">HUNTER STATUS</div><div class="page-sub">Your growth. Your legend.</div></div>
+    <button class="btn btn-gold btn-sm" id="alloc-btn" onclick="openAllocModal()">⚡ ALLOCATE POINTS (<span id="pts-count">0</span>)</button>
+  </div>
+  <div class="g2">
+    <div>
+      <div class="panel mb2">
+        <div class="ptitle">⚡ CORE ATTRIBUTES</div>
+        <div id="stat-bars-el"></div>
+        <div class="divider"></div>
+        <div class="flex ai-c jc-b">
+          <span class="fd" style="font-size:9px;color:var(--dim);">AVAILABLE STAT POINTS</span>
+          <span class="txt-gold fd" style="font-size:18px;" id="sp-pts">0</span>
+        </div>
+      </div>
+      <div class="panel p-gold">
+        <div class="ptitle gold">👑 EQUIPPED TITLE</div>
+        <div id="eq-title-display" class="sq">No title equipped.</div>
+        <div class="ptitle gold" style="margin-top:14px;">⚡ ACTIVE SKILLS</div>
+        <div id="active-skills-display" style="display:flex;flex-wrap:wrap;gap:7px;"></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel mb2">
+        <div class="ptitle">📈 PROGRESSION</div>
+        <div class="g2 keep mb2">
+          <div class="sc"><div class="sc-v" id="sp-lv">1</div><div class="sc-l">LEVEL</div></div>
+          <div class="sc gold"><div class="sc-v" id="sp-rank">E</div><div class="sc-l">RANK</div></div>
+          <div class="sc purple"><div class="sc-v" id="sp-class">—</div><div class="sc-l">CLASS</div></div>
+          <div class="sc green"><div class="sc-v" id="sp-stk">0</div><div class="sc-l">STREAK</div></div>
+        </div>
+        <div class="xp-rail" style="height:10px;margin-bottom:5px;"><div class="xp-fill" id="sp-xp-fill" style="width:0%"></div></div>
+        <div class="flex jc-b">
+          <span class="txt-dim fm" style="font-size:10px;">EXP</span>
+          <span class="txt-blue fm" style="font-size:10px;" id="sp-xp-lbl">0 / 100</span>
+        </div>
+      </div>
+      <div class="panel mb2">
+        <div class="ptitle">📊 LIFETIME STATS</div>
+        <div class="g2 keep">
+          <div class="sc"><div class="sc-v" id="ls-q">0</div><div class="sc-l">Quests Done</div></div>
+          <div class="sc purple"><div class="sc-v" id="ls-xp">0</div><div class="sc-l">Total XP</div></div>
+          <div class="sc green"><div class="sc-v" id="ls-sh">0h</div><div class="sc-l">Study Hours</div></div>
+          <div class="sc orange"><div class="sc-v" id="ls-wo">0</div><div class="sc-l">Workouts</div></div>
+        </div>
+      </div>
+      <div class="panel p-red">
+        <div class="ptitle red">🎯 NEXT RANK REQUIREMENT</div>
+        <div id="rank-req-el"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== QUESTS ===== -->
+<div id="tab-quests" class="tab-view">
+  <div class="page-hdr">
+    <div><div class="page-title">QUEST BOARD</div><div class="page-sub">Complete quests. Earn power. Rise.</div></div>
+    <div class="page-actions">
+      <button class="btn btn-purple btn-sm" id="gen-ai-q-btn" onclick="generateAIQuests()">⚡ AI GENERATE</button>
+      <button class="btn btn-gold btn-sm" onclick="openCustomQuestModal()">+ CUSTOM</button>
+    </div>
+  </div>
+  <div id="ai-quest-bar" class="alert alert-info mb2" style="display:none;font-family:var(--fm);font-size:12px;">⚡ The System is forging your quests... stand by.</div>
+  <div class="g2">
+    <div>
+      <div class="panel mb2">
+        <div class="ptitle" id="daily-title">⚡ DAILY QUESTS</div>
+        <div id="q-daily"></div>
+      </div>
+      <div class="panel p-red">
+        <div class="ptitle red">🚨 EMERGENCY QUESTS</div>
+        <div id="q-emergency"></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel mb2 p-purple">
+        <div class="ptitle purple">📅 WEEKLY QUESTS</div>
+        <div id="q-weekly"></div>
+      </div>
+      <div class="panel p-orange">
+        <div class="ptitle orange">⭐ MAIN STORY QUESTS</div>
+        <div id="q-main"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NEET 2026 ===== -->
+<div id="tab-neet" class="tab-view">
+  <div class="page-hdr">
+    <div><div class="page-title">🧬 NEET 2026 CHAMBER</div><div class="page-sub">Conquer biology. Dominate chemistry. Master physics.</div></div>
+  </div>
+  <div class="panel mb2" style="background:linear-gradient(135deg,rgba(155,93,229,.08),rgba(0,212,255,.08));">
+    <div class="ptitle gold">📅 COUNTDOWN TO NEET 2026</div>
+    <div class="cd-grid" id="neet-cd">
+      <div class="cd-unit"><div class="cd-v" id="cd-d">—</div><div class="cd-l">DAYS</div></div>
+      <div class="cd-unit"><div class="cd-v" id="cd-h">—</div><div class="cd-l">HOURS</div></div>
+      <div class="cd-unit"><div class="cd-v" id="cd-m">—</div><div class="cd-l">MINS</div></div>
+      <div class="cd-unit"><div class="cd-v" id="cd-s">—</div><div class="cd-l">SECS</div></div>
+    </div>
+  </div>
+  <div class="g2 mb2">
+    <div class="panel">
+      <div class="ptitle">⏱ POMODORO TIMER</div>
+      <div style="text-align:center;padding:8px 0;">
+        <div class="timer-label" id="timer-lbl">🎯 Focus Session</div>
+        <div class="pomo-dots" id="pomo-dots"></div>
+        <div class="timer-big" id="timer-disp">25:00</div>
+        <div class="fg" style="max-width:200px;margin:14px auto 0;">
+          <label class="fl" style="text-align:center;">SUBJECT</label>
+          <select class="fi" id="timer-sub" style="text-align:center;font-size:13px;">
+            <option value="physics">⚛️ Physics</option>
+            <option value="chemistry">🧪 Chemistry</option>
+            <option value="biology">🧬 Biology</option>
+          </select>
+        </div>
+        <div class="timer-btns" style="margin-top:12px;">
+          <button class="btn btn-green" id="timer-play-btn" onclick="toggleTimer()">▶ START</button>
+          <button class="btn btn-blue" onclick="resetTimer()">↺ RESET</button>
+          <button class="btn btn-gold" onclick="toggleBreak()">☕ BREAK</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="flex jc-b ai-c">
+        <span class="txt-dim fm" style="font-size:11px;">Today's study</span>
+        <span class="txt-blue fd" id="today-study">0h 0m</span>
+      </div>
+      <div class="flex jc-b ai-c" style="margin-top:5px;">
+        <span class="txt-dim fm" style="font-size:11px;">Goal</span>
+        <span class="txt-gold fd" id="study-goal-lbl">—</span>
+      </div>
+    </div>
+    <div class="panel p-purple">
+      <div class="ptitle purple">📝 MOCK TEST TRACKER</div>
+      <div class="g2 keep mb2">
+        <div class="sc purple"><div class="sc-v" id="mt-cnt">0</div><div class="sc-l">Tests Done</div></div>
+        <div class="sc green"><div class="sc-v" id="mt-avg">—</div><div class="sc-l">Avg Score</div></div>
+        <div class="sc gold"><div class="sc-v" id="mt-best">—</div><div class="sc-l">Best</div></div>
+        <div class="sc blue"><div class="sc-v" id="mt-target">720</div><div class="sc-l">Target</div></div>
+      </div>
+      <button class="btn btn-purple btn-full" onclick="openMockModal()">+ LOG MOCK TEST</button>
+      <div class="line-dec"></div>
+      <div id="mt-list" style="max-height:200px;overflow-y:auto;"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="flex jc-b ai-c mb2 fw gap2">
+      <div class="ptitle" style="margin-bottom:0;">📚 SYLLABUS TRACKER</div>
+      <div class="flex gap1">
+        <button class="btn btn-blue btn-sm" onclick="switchSub('physics')">⚛️ Physics</button>
+        <button class="btn btn-green btn-sm" onclick="switchSub('chemistry')">🧪 Chem</button>
+        <button class="btn btn-purple btn-sm" onclick="switchSub('biology')">🧬 Bio</button>
+      </div>
+    </div>
+    <div id="subj-overview" class="g2 keep mb2"></div>
+    <div id="ch-view"></div>
+  </div>
+</div>
+
+<!-- ===== WORKOUT ===== -->
+<div id="tab-workout" class="tab-view">
+  <div class="page-hdr">
+    <div><div class="page-title">⚔️ TRAINING GROUND</div><div class="page-sub">Forge your body. Exceed your limits.</div></div>
+    <div class="page-actions">
+      <button class="btn btn-purple btn-sm" onclick="genAIWorkout()">⚡ AI WORKOUT</button>
+      <button class="btn btn-green btn-sm" onclick="completeWorkout()">✓ LOG SESSION</button>
+    </div>
+  </div>
+  <div class="g4 mb2">
+    <div class="sc orange"><div class="sc-v" id="w-stk">0🔥</div><div class="sc-l">Streak</div></div>
+    <div class="sc"><div class="sc-v" id="w-total">0</div><div class="sc-l">Total Sessions</div></div>
+    <div class="sc green"><div class="sc-v" id="w-week">0</div><div class="sc-l">This Week</div></div>
+    <div class="sc purple"><div class="sc-v" id="w-xp">0</div><div class="sc-l">XP Earned</div></div>
+  </div>
+  <div class="g2">
+    <div>
+      <div class="panel mb2">
+        <div class="ptitle">🏋️ TODAY'S SESSION</div>
+        <div class="fg">
+          <label class="fl">WORKOUT TYPE</label>
+          <select class="fi" id="wo-type">
+            <option value="push">💪 Push Day (Chest / Shoulders / Tris)</option>
+            <option value="pull">🔙 Pull Day (Back / Biceps)</option>
+            <option value="legs">🦵 Leg Day (Quads / Hams / Calves)</option>
+            <option value="upper">⬆️ Upper Body</option>
+            <option value="lower">⬇️ Lower Body</option>
+            <option value="full">⚡ Full Body</option>
+            <option value="cardio">🏃 Cardio / Endurance</option>
+            <option value="custom">✏️ Custom</option>
+          </select>
+        </div>
+        <div id="ex-list" class="mb2"></div>
+        <button class="btn btn-blue btn-full" onclick="openAddExModal()">+ ADD EXERCISE</button>
+        <div class="divider"></div>
+        <div class="fg mb1">
+          <label class="fl">SESSION NOTES</label>
+          <textarea class="fi" id="wo-notes" placeholder="PRs? How'd it feel? What to improve?"></textarea>
+        </div>
+        <button class="btn btn-green btn-full btn-lg" onclick="completeWorkout()">⚔️ COMPLETE SESSION (+XP)</button>
+      </div>
+    </div>
+    <div>
+      <div class="panel mb2 p-gold">
+        <div class="ptitle gold">📅 WEEKLY SPLIT</div>
+        <div class="ws-grid mb1">
+          <div><div class="ws-day-l">MON</div><div class="ws-bar" id="wsb-1"></div></div>
+          <div><div class="ws-day-l">TUE</div><div class="ws-bar" id="wsb-2"></div></div>
+          <div><div class="ws-day-l">WED</div><div class="ws-bar" id="wsb-3"></div></div>
+          <div><div class="ws-day-l">THU</div><div class="ws-bar" id="wsb-4"></div></div>
+          <div><div class="ws-day-l">FRI</div><div class="ws-bar" id="wsb-5"></div></div>
+          <div><div class="ws-day-l">SAT</div><div class="ws-bar" id="wsb-6"></div></div>
+          <div><div class="ws-day-l">SUN</div><div class="ws-bar" id="wsb-7"></div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">📋 WORKOUT HISTORY</div>
+        <div id="wo-history" style="max-height:320px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AI MENTOR ===== -->
+<div id="tab-ai" class="tab-view">
+  <div class="page-hdr">
+    <div><div class="page-title">⚡ THE SYSTEM — AI MENTOR</div><div class="page-sub">Your all-knowing, relentless guide to greatness.</div></div>
+    <button class="btn btn-red btn-sm" onclick="clearChat()">🗑 CLEAR CHAT</button>
+  </div>
+  <div id="no-key-warn" class="alert alert-warn mb2" style="display:none;">
+    ⚠️ No OpenAI API key set. Go to <strong>Settings → AI Config</strong> to add your key and unlock the System AI.
+  </div>
+  <div class="g2" style="height:calc(100vh - 200px);min-height:500px;">
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <div class="panel p-purple" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+        <div class="ptitle purple">💬 SYSTEM COMMUNICATION</div>
+        <div id="ai-chat-area"></div>
+        <div class="chat-row">
+          <input type="text" class="fi" id="ai-input" placeholder="Speak to The System..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}">
+          <button class="btn btn-purple" onclick="sendMsg()" style="flex-shrink:0;">SEND ⚡</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel mb2 p-gold">
+        <div class="ptitle gold">⚡ QUICK COMMANDS</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <button class="btn btn-purple btn-full" onclick="aiCmd('analyze')">📊 Analyze My Performance</button>
+          <button class="btn btn-blue btn-full" onclick="aiCmd('gen_quests')">📋 Generate Today's Quests</button>
+          <button class="btn btn-green btn-full" onclick="aiCmd('study_plan')">📚 7-Day NEET Study Plan</button>
+          <button class="btn btn-orange btn-full" onclick="aiCmd('workout_plan')">💪 Design Workout Plan</button>
+          <button class="btn btn-red btn-full" onclick="aiCmd('motivate')">🔥 EMERGENCY MOTIVATION</button>
+          <button class="btn btn-gold btn-full" onclick="aiCmd('rank_up')">🏆 Rank Up Assessment</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">📊 AI INSIGHTS</div>
+        <div id="ai-insights-el"><div class="txt-dim fm" style="font-size:12px;">Chat with the AI to receive personalized insights.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== INVENTORY ===== -->
+<div id="tab-inventory" class="tab-view">
+  <div class="page-hdr"><div class="page-title">🎖️ INVENTORY</div><div class="page-sub">Titles, skills, achievements — your legacy.</div></div>
+  <div class="g2 mb2">
+    <div class="panel p-gold">
+      <div class="ptitle gold">👑 TITLES</div>
+      <div id="titles-list"></div>
+    </div>
+    <div class="panel p-purple">
+      <div class="ptitle purple">⚡ SKILL TREE</div>
+      <div id="skill-tree-el" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+    </div>
+  </div>
+  <div class="panel p-gold">
+    <div class="ptitle gold">🏆 ACHIEVEMENTS</div>
+    <div class="ach-grid" id="ach-grid"></div>
+  </div>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div id="tab-settings" class="tab-view">
+  <div class="page-hdr"><div class="page-title">⚙️ SYSTEM CONFIG</div><div class="page-sub">Configure your Hunter profile and AI core.</div></div>
+  <div class="g2">
+    <div>
+      <div class="panel mb2">
+        <div class="ptitle">👤 HUNTER PROFILE</div>
+        <div class="fg"><label class="fl">HUNTER NAME</label><input type="text" class="fi" id="cfg-name" placeholder="Your name"></div>
+        <div class="fg"><label class="fl">CLASS</label>
+          <select class="fi" id="cfg-class">
+            <option value="Shadow">🌑 Shadow Monarch (Balanced)</option>
+            <option value="Mage">🔮 Scholar Mage (+INT focus)</option>
+            <option value="Warrior">⚔️ Iron Warrior (+STR focus)</option>
+            <option value="Ranger">🏹 Swift Ranger (+AGI focus)</option>
+            <option value="Healer">✨ Healer (+PER focus)</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">NEET EXAM DATE</label><input type="date" class="fi" id="cfg-exam" value="2026-05-03"></div>
+        <div class="fg"><label class="fl">DAILY STUDY GOAL (minutes)</label><input type="number" class="fi" id="cfg-study" value="360" min="60" max="900"></div>
+        <div class="fg"><label class="fl">WORKOUT DAYS PER WEEK</label><input type="number" class="fi" id="cfg-wodpw" value="5" min="1" max="7"></div>
+        <button class="btn btn-green btn-full" onclick="saveProfile()">💾 SAVE PROFILE</button>
+      </div>
+      <div class="panel p-red">
+        <div class="ptitle red">⚠️ DANGER ZONE</div>
+        <div class="alert alert-error mb2" style="font-size:12px;">Permanently delete all progress. Irreversible.</div>
+        <button class="btn btn-red btn-full" onclick="confirmReset()">💀 RESET ALL PROGRESS</button>
+      </div>
+    </div>
+    <div>
+      <div class="panel mb2 p-purple">
+        <div class="ptitle purple">🤖 OPENAI API CONFIG</div>
+        <div class="alert alert-info mb2" style="font-size:12px;">
+          Get your key at <strong>platform.openai.com/api-keys</strong>. Your key is stored only in your browser and never sent anywhere except directly to OpenAI.
+        </div>
+        <div class="fg">
+          <label class="fl">OPENAI API KEY</label>
+          <div style="position:relative;">
+            <input type="password" class="fi mono" id="cfg-key" placeholder="sk-...">
+            <button onclick="toggleKeyVis()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);font-size:16px;cursor:pointer;" id="eye-btn">👁</button>
+          </div>
+        </div>
+        <div class="fg">
+          <label class="fl">MODEL</label>
+          <select class="fi" id="cfg-model">
+            <option value="gpt-4o">GPT-4o (Recommended)</option>
+            <option value="gpt-4o-mini">GPT-4o Mini (Faster/Cheaper)</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Budget)</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">AI PERSONALITY</label>
+          <select class="fi" id="cfg-persona">
+            <option value="system">🌑 The System (Cold & Calculating)</option>
+            <option value="monarch">👑 Shadow Monarch (Dark & Intense)</option>
+            <option value="drill">💀 Drill Sergeant (Brutal & Direct)</option>
+            <option value="elder">🌌 Ancient Elder (Wise & Deep)</option>
+            <option value="hype">⚡ Hype Commander (Explosive Energy)</option>
+          </select>
+        </div>
+        <button class="btn btn-purple btn-full" onclick="saveAIConfig()">💾 SAVE & TEST CONNECTION</button>
+        <div id="api-test-res" class="mt2 fm" style="font-size:12px;min-height:20px;"></div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">ℹ️ SYSTEM INFO</div>
+        <div class="fm" style="font-size:12px;color:var(--dim);line-height:2.2;">
+          <div>System: <span class="txt-blue">ARISE v3.0 — GOAT Edition</span></div>
+          <div>Protocol: <span class="txt-blue">Hunter Framework Active</span></div>
+          <div>Storage: <span class="txt-blue">LocalStorage (Browser)</span></div>
+          <div>AI Engine: <span class="txt-blue">OpenAI GPT</span></div>
+          <div>Status: <span class="txt-green">⬤ OPERATIONAL</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ============================================================
+   LEVEL UP OVERLAY
+============================================================ -->
+<div id="lu-overlay">
+  <div id="lu-particles"></div>
+  <div style="z-index:1;position:relative;text-align:center;">
+    <div class="lu-pre">⚡ LEVEL UP ⚡</div>
+    <div class="lu-num" id="lu-num">2</div>
+    <div class="lu-label" id="lu-lbl">HUNTER LEVEL INCREASED</div>
+    <div class="lu-rewards" id="lu-rws"></div>
+    <button class="btn btn-gold btn-lg" onclick="closeLU()" style="margin-top:22px;">ACCEPT POWER ✓</button>
+  </div>
+</div>
+
+<!-- ============================================================
+   RANK UP OVERLAY
+============================================================ -->
+<div id="ru-overlay">
+  <div style="z-index:1;position:relative;text-align:center;">
+    <div class="lu-pre" style="color:var(--gold);">🏆 RANK UP 🏆</div>
+    <div class="ru-from" id="ru-from">E</div>
+    <div class="ru-arrow">▼</div>
+    <div class="ru-to txt-gold" id="ru-to">D</div>
+    <div class="lu-label mt2" id="ru-title-unlock" style="color:var(--gold);"></div>
+    <button class="btn btn-gold btn-lg" onclick="closeRU()" style="margin-top:22px;">CLAIM POWER ⚡</button>
+  </div>
+</div>
+
+<!-- ============================================================
+   GENERIC MODAL
+============================================================ -->
+<div class="modal-ov" id="gmodal" style="display:none;" onclick="gmodalClickOut(event)">
+  <div class="modal-box" id="gmodal-box">
+    <button class="modal-close" onclick="closeGModal()">✕</button>
+    <div id="gmodal-body"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+   ONBOARD MODAL
+============================================================ -->
+<div class="modal-ov" id="ob-modal" style="display:none;">
+  <div class="modal-box">
+    <div class="ob-dots" id="ob-dots"></div>
+    <div id="ob-steps">
+      <div class="ob-step active" id="obs-1">
+        <div class="modal-title">⚡ SYSTEM BOOT</div>
+        <div class="modal-sub">A new hunter has been detected. Registration required.</div>
+        <div class="sq mb2">"Processing lifeform scan... Anomaly detected. This one has potential."</div>
+        <div class="fg"><label class="fl">YOUR NAME, HUNTER</label><input type="text" class="fi" id="ob-name" placeholder="Enter your name..." autocomplete="off"></div>
+        <button class="btn btn-blue btn-full btn-lg" onclick="obNext(1)">PROCEED →</button>
+      </div>
+      <div class="ob-step" id="obs-2">
+        <div class="modal-title">⚔️ CHOOSE YOUR CLASS</div>
+        <div class="modal-sub">Your class shapes your starting attributes and playstyle.</div>
+        <div class="class-select-grid" id="class-grid"></div>
+        <button class="btn btn-blue btn-full btn-lg" onclick="obNext(2)">PROCEED →</button>
+      </div>
+      <div class="ob-step" id="obs-3">
+        <div class="modal-title">🧬 NEET CONFIGURATION</div>
+        <div class="modal-sub">Configure your exam parameters for optimal AI quest generation.</div>
+        <div class="fg"><label class="fl">EXAM DATE</label><input type="date" class="fi" id="ob-exam" value="2026-05-03"></div>
+        <div class="fg"><label class="fl">DAILY STUDY GOAL</label>
+          <select class="fi" id="ob-goal">
+            <option value="240">4 hours / day</option>
+            <option value="360" selected>6 hours / day</option>
+            <option value="480">8 hours / day</option>
+            <option value="600">10 hours / day</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">CURRENT LEVEL</label>
+          <select class="fi" id="ob-prep">
+            <option value="beginner">Beginner — Just started</option>
+            <option value="intermediate" selected>Intermediate — Some base</option>
+            <option value="advanced">Advanced — Strong foundation</option>
+          </select>
+        </div>
+        <button class="btn btn-blue btn-full btn-lg" onclick="obNext(3)">PROCEED →</button>
+      </div>
+      <div class="ob-step" id="obs-4">
+        <div class="modal-title">🤖 AI SYSTEM KEY</div>
+        <div class="modal-sub">Add your OpenAI key for the full AI mentor experience.</div>
+        <div class="alert alert-info mb2" style="font-size:12px;">Optional — add/change later in Settings. Get key at <strong>platform.openai.com</strong></div>
+        <div class="fg"><label class="fl">OPENAI API KEY</label><input type="password" class="fi mono" id="ob-key" placeholder="sk-... (optional)"></div>
+        <div class="flex gap2">
+          <button class="btn btn-blue btn-full" onclick="obNext(4)">SKIP →</button>
+          <button class="btn btn-purple btn-full" onclick="obSaveKey()">SAVE & CONTINUE ⚡</button>
+        </div>
+      </div>
+      <div class="ob-step" id="obs-5">
+        <div class="modal-title txt-gold">⚡ AWAKENING COMPLETE</div>
+        <div class="modal-sub">Hunter registration confirmed. The System is ready.</div>
+        <div class="sq mb2" id="ob-summary"></div>
+        <div class="g2 keep mb2">
+          <div class="sc"><div class="sc-v txt-blue">1</div><div class="sc-l">STARTING LEVEL</div></div>
+          <div class="sc gold"><div class="sc-v">E</div><div class="sc-l">STARTING RANK</div></div>
+        </div>
+        <button class="btn btn-gold btn-full btn-lg" onclick="completeOnboarding()">⚡ ARISE ⚡</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOAST CONTAINER ============ -->
+<div id="toast-wrap"></div>
+
+<script>
+'use strict';
+/* ============================================================
+   CONSTANTS & DATA
+============================================================ */
+const RANKS = ['E','D','C','B','A','S','SS'];
+const RANK_COLORS = {E:'#9ca3af',D:'#34d399',C:'#60a5fa',B:'#a855f7',A:'#f97316',S:'#ffd60a',SS:'#ff3c6e'};
+const RANK_REQ_LEVEL = {E:0,D:10,C:25,B:50,A:80,S:110,SS:150};
+const XP_FOR_LEVEL = (lv) => Math.floor(100 * Math.pow(1.18, lv - 1));
+
+const CLASSES = [
+  {id:'Shadow',icon:'🌑',name:'Shadow Monarch',desc:'+3 to ALL stats. Balanced excellence.',bonus:{int:3,str:3,end:3,agi:3,per:3,luk:3}},
+  {id:'Mage',icon:'🔮',name:'Scholar Mage',desc:'+6 INT, +3 PER. Dominant intellect.',bonus:{int:6,per:3,luk:1}},
+  {id:'Warrior',icon:'⚔️',name:'Iron Warrior',desc:'+6 STR, +4 END. Unstoppable force.',bonus:{str:6,end:4,luk:0}},
+  {id:'Ranger',icon:'🏹',name:'Swift Ranger',desc:'+5 AGI, +4 PER. Speed & precision.',bonus:{agi:5,per:4}},
+  {id:'Healer',icon:'✨',name:'Divine Healer',desc:'+4 PER, +3 LUK, +3 INT.',bonus:{per:4,luk:3,int:3}},
+];
+
+const NEET = {
+  physics:[
+    'Physical World & Units','Kinematics','Laws of Motion','Work Energy & Power',
+    'System of Particles','Rotational Motion','Gravitation','Properties of Solids',
+    'Thermodynamics','Kinetic Theory of Gases','Oscillations','Waves',
+    'Electrostatics','Current Electricity','Moving Charges & Magnetism','Magnetism & Matter',
+    'Electromagnetic Induction','Alternating Current','Electromagnetic Waves',
+    'Ray Optics','Wave Optics','Dual Nature of Matter','Atoms','Nuclei'
+  ],
+  chemistry:[
+    'Basic Concepts','Structure of Atom','Classification of Elements','Chemical Bonding',
+    'States of Matter','Thermodynamics','Equilibrium','Redox Reactions','Hydrogen',
+    's-Block Elements','p-Block Gr13-14 (11)','Organic Chemistry Basics','Hydrocarbons',
+    'p-Block Gr15-18 (12)','d & f Block','Coordination Compounds','Haloalkanes & Haloarenes',
+    'Alcohols Phenols Ethers','Aldehydes Ketones','Carboxylic Acids','Amines',
+    'Biomolecules','Polymers','Chemistry in Everyday Life','Environmental Chemistry',
+    'Solutions','Electrochemistry','Chemical Kinetics','Surface Chemistry','Solid State'
+  ],
+  biology:[
+    'The Living World','Biological Classification','Plant Kingdom','Animal Kingdom',
+    'Morphology of Plants','Anatomy of Plants','Structural Organisation in Animals',
+    'Cell: The Unit of Life','Biomolecules','Cell Cycle & Division','Transport in Plants',
+    'Mineral Nutrition','Photosynthesis in Plants','Respiration in Plants','Plant Growth & Dev',
+    'Digestion & Absorption','Breathing & Gas Exchange','Body Fluids & Circulation',
+    'Excretory Products & Elimination','Locomotion & Movement','Neural Control & Coordination',
+    'Chemical Coordination','Reproduction in Organisms','Sexual Reproduction in Plants',
+    'Human Reproduction','Reproductive Health','Principles of Inheritance',
+    'Molecular Basis of Inheritance','Evolution','Human Health & Disease',
+    'Strategies for Enhancement','Microbes in Human Welfare',
+    'Biotechnology: Principles','Biotechnology: Applications',
+    'Organisms & Populations','Ecosystem','Biodiversity','Environmental Issues'
+  ]
+};
+
+const ACHIEVEMENTS = [
+  {id:'first_quest',icon:'📋',name:'First Blood',desc:'Complete your first quest',fn:s=>s.life.qDone>=1},
+  {id:'lv5',icon:'⬆️',name:'Rising Hunter',desc:'Reach Level 5',fn:s=>s.level>=5},
+  {id:'lv10',icon:'🔥',name:'Seasoned Veteran',desc:'Reach Level 10',fn:s=>s.level>=10},
+  {id:'lv25',icon:'💎',name:'Elite Hunter',desc:'Reach Level 25',fn:s=>s.level>=25},
+  {id:'lv50',icon:'🌟',name:'Legendary',desc:'Reach Level 50',fn:s=>s.level>=50},
+  {id:'stk7',icon:'🗓️',name:'Week Warrior',desc:'7-day login streak',fn:s=>s.streak>=7},
+  {id:'stk30',icon:'🌙',name:'Iron Discipline',desc:'30-day login streak',fn:s=>s.streak>=30},
+  {id:'rank_d',icon:'🟢',name:'Rank D',desc:'Achieve Rank D',fn:s=>RANKS.indexOf(s.rank)>=1},
+  {id:'rank_c',icon:'🔵',name:'Rank C',desc:'Achieve Rank C',fn:s=>RANKS.indexOf(s.rank)>=2},
+  {id:'rank_b',icon:'🟣',name:'Rank B',desc:'Achieve Rank B',fn:s=>RANKS.indexOf(s.rank)>=3},
+  {id:'rank_a',icon:'🟠',name:'Rank A',desc:'Achieve Rank A',fn:s=>RANKS.indexOf(s.rank)>=4},
+  {id:'rank_s',icon:'⭐',name:'S-Rank Hunter',desc:'Achieve Rank S',fn:s=>RANKS.indexOf(s.rank)>=5},
+  {id:'neet50',icon:'🧬',name:'Half Way There',desc:'50% NEET completion',fn:s=>neetOverall(s)>=50},
+  {id:'neet100',icon:'🏆',name:'NEET MASTER',desc:'100% NEET completion',fn:s=>neetOverall(s)>=100},
+  {id:'wo10',icon:'💪',name:'Warrior Born',desc:'10 workouts',fn:s=>s.life.woDone>=10},
+  {id:'wo50',icon:'⚔️',name:'Iron Body',desc:'50 workouts',fn:s=>s.life.woDone>=50},
+  {id:'study100',icon:'📚',name:'Scholar',desc:'100 study hours',fn:s=>s.life.studyMins>=6000},
+  {id:'study500',icon:'🌌',name:'Knowledge Seeker',desc:'500 study hours',fn:s=>s.life.studyMins>=30000},
+  {id:'mock10',icon:'📝',name:'Test Veteran',desc:'10 mock tests',fn:s=>s.mocks.length>=10},
+  {id:'q50',icon:'🗺️',name:'Quest Master',desc:'50 quests done',fn:s=>s.life.qDone>=50},
+];
+
+const SKILLS = [
+  {id:'focus',icon:'🎯',name:'Focus Mastery',desc:'+20% study XP',req:5,stat:'int',bonus:3},
+  {id:'iron_will',icon:'🔥',name:'Iron Will',desc:'+2 END permanently',req:8,stat:'end',bonus:4},
+  {id:'shadow_step',icon:'🌑',name:'Shadow Step',desc:'+15% all XP',req:12,stat:'agi',bonus:3},
+  {id:'scholars_mind',icon:'📖',name:"Scholar's Mind",desc:'+5 INT permanently',req:10,stat:'int',bonus:5},
+  {id:'domain',icon:'🌌',name:'Domain Expansion',desc:'+5 all stats',req:20,stat:'all',bonus:5},
+  {id:'arise',icon:'⚡',name:'ARISE',desc:'Double XP (1hr cooldown)',req:30,stat:'all',bonus:0},
+];
+
+const TITLES = [
+  {id:'awakened',icon:'⚡',name:'The Awakened',bonus:'+2 all stats',xpBonus:0},
+  {id:'studious',icon:'📚',name:'The Scholar',bonus:'+5 INT',xpBonus:0},
+  {id:'ironclad',icon:'🛡️',name:'The Ironclad',bonus:'+5 STR, +5 END',xpBonus:0},
+  {id:'relentless',icon:'🔥',name:'The Relentless',bonus:'+5 all stats',xpBonus:0},
+  {id:'s_aspirant',icon:'⭐',name:'S-Rank Aspirant',bonus:'+10 all stats',xpBonus:0},
+  {id:'neet_hunter',icon:'🧬',name:'NEET Hunter',bonus:'+10 INT, +5 PER',xpBonus:50},
+  {id:'shadow_monarch',icon:'👑',name:'Shadow Monarch',bonus:'+20 all stats',xpBonus:100},
+];
+
+const DEFAULT = () => ({
+  name:'',class:'Shadow',rank:'E',level:1,xp:0,streak:0,
+  lastLogin:null,statPts:5,
+  stats:{int:10,str:10,end:10,agi:10,per:10,luk:10},
+  eqTitle:'awakened',titles:['awakened'],skills:[],achiev:[],
+  quests:[],mocks:[],
+  neet:{physics:Array(24).fill(0),chemistry:Array(30).fill(0),biology:Array(38).fill(0)},
+  workouts:[],studySess:[],
+  life:{qDone:0,totalXP:0,studyMins:0,woDone:0},
+  wStreak:0,pomoDone:0,
+  cfg:{exam:'2026-05-03',studyMins:360,wodpw:5,persona:'system',model:'gpt-4o'}
+});
+
+/* ============================================================
+   STATE
+============================================================ */
+let S = {};
+let apiKey = '';
+let chatHist = [];
+let exList = [];
+let timerSec = 25*60;
+let timerOn = false;
+let timerBreak = false;
+let timerTick = null;
+let timerStart = null;
+let curSub = 'physics';
+let obSelClass = '';
+let allocTmp = null; // {stat:delta}
+
+/* ============================================================
+   BOOT
+============================================================ */
+function boot(){
+  loadState();
+  initCanvas();
+  checkDailyLogin();
+  renderAll();
+  startCountdown();
+  setTimeout(()=>{
+    document.getElementById('boot-screen').classList.add('hidden');
+    setTimeout(()=>{
+      document.getElementById('boot-screen').style.display='none';
+      if(!S.name) openOnboard();
+      else sysAlert(`Welcome back, ${S.name}. The System remembers your progress.`);
+    },800);
+  },2200);
+}
+
+/* ============================================================
+   SAVE / LOAD
+============================================================ */
+function loadState(){
+  try{
+    const raw=localStorage.getItem('arise3');
+    S=raw?mergeDefault(JSON.parse(raw)):DEFAULT();
+    const k=localStorage.getItem('arise3_key');
+    if(k) apiKey=k;
+    const ch=localStorage.getItem('arise3_chat');
+    if(ch) chatHist=JSON.parse(ch);
+  }catch(e){S=DEFAULT();}
+}
+function mergeDefault(saved){
+  const def=DEFAULT();
+  const merged={...def,...saved};
+  merged.stats={...def.stats,...(saved.stats||{})};
+  merged.life={...def.life,...(saved.life||{})};
+  merged.cfg={...def.cfg,...(saved.cfg||{})};
+  merged.neet={
+    physics: Array(24).fill(0).map((_,i)=>(saved.neet?.physics?.[i])||0),
+    chemistry: Array(30).fill(0).map((_,i)=>(saved.neet?.chemistry?.[i])||0),
+    biology: Array(38).fill(0).map((_,i)=>(saved.neet?.biology?.[i])||0),
+  };
+  if(!merged.titles) merged.titles=['awakened'];
+  if(!merged.quests) merged.quests=[];
+  if(!merged.mocks) merged.mocks=[];
+  if(!merged.workouts) merged.workouts=[];
+  if(!merged.studySess) merged.studySess=[];
+  if(!merged.skills) merged.skills=[];
+  if(!merged.achiev) merged.achiev=[];
+  return merged;
+}
+function save(){
+  try{
+    localStorage.setItem('arise3',JSON.stringify(S));
+    if(apiKey) localStorage.setItem('arise3_key',apiKey);
+    localStorage.setItem('arise3_chat',JSON.stringify(chatHist.slice(-60)));
+  }catch(e){console.error('Save failed:',e);}
+}
+
+/* ============================================================
+   DAILY LOGIN
+============================================================ */
+function checkDailyLogin(){
+  const today=new Date().toDateString();
+  if(S.lastLogin===today) return;
+  const yesterday=new Date(Date.now()-86400000).toDateString();
+  if(S.lastLogin===yesterday) S.streak=(S.streak||0)+1;
+  else if(S.lastLogin && S.lastLogin!==today) S.streak=1;
+  else if(!S.lastLogin) S.streak=1;
+  S.lastLogin=today;
+  // reset daily quests
+  S.quests=S.quests.filter(q=>q.type!=='daily'||q.done);
+  save();
+}
+
+/* ============================================================
+   RENDER ALL
+============================================================ */
+function renderAll(){
+  renderHUD();
+  renderDash();
+  renderStats();
+  renderQuests();
+  renderNEET();
+  renderWorkout();
+  renderInventory();
+  renderSettings();
+  checkAchiev();
+}
+
+/* ============================================================
+   HUD
+============================================================ */
+function renderHUD(){
+  const {name,level,xp,rank,stats,streak,wStreak,eqTitle}=S;
+  document.getElementById('hud-name').textContent=name||'HUNTER';
+  const t=TITLES.find(x=>x.id===eqTitle);
+  document.getElementById('hud-title').textContent=t?`[ ${t.name} ]`:'[ Unranked Hunter ]';
+  document.getElementById('hud-lvl').textContent=`LVL ${level}`;
+  const need=XP_FOR_LEVEL(level);
+  document.getElementById('hud-xp-lbl').textContent=`${xp} / ${need}`;
+  document.getElementById('hud-xp-fill').style.width=`${Math.min(100,(xp/need)*100)}%`;
+  const rb=document.getElementById('hud-rank-badge');
+  rb.textContent=rank;
+  rb.className=`hud-rank-badge rank-${rank}`;
+  document.getElementById('hms-int').textContent=stats.int;
+  document.getElementById('hms-str').textContent=stats.str;
+  document.getElementById('hms-end').textContent=stats.end;
+  document.getElementById('hms-stk').textContent=(streak||0)+'🔥';
+  // quest badge
+  const active=(S.quests||[]).filter(q=>!q.done).length;
+  const qb=document.getElementById('qbadge');
+  qb.textContent=active;
+  qb.style.display=active>0?'inline':'none';
+  document.getElementById('pts-count').textContent=S.statPts||0;
+  document.getElementById('sp-pts').textContent=S.statPts||0;
+}
+
+/* ============================================================
+   DASHBOARD
+============================================================ */
+function renderDash(){
+  const h=new Date().getHours();
+  const greets=['Still awake? Respect. Train harder.','Morning, Hunter. The weak still sleep.','Afternoon grind. Stay locked in.','Evening session. While others rest, you rise.'];
+  const gi=h<6?0:h<12?1:h<17?2:3;
+  document.getElementById('dash-greeting').textContent=`${greets[gi]} — ${S.name||'Hunter'}`;
+  document.getElementById('d-level').textContent=S.level;
+  document.getElementById('d-streak').textContent=(S.streak||0)+'🔥';
+  document.getElementById('d-qdone').textContent=S.life.qDone;
+  document.getElementById('d-txp').textContent=S.life.totalXP;
+  // exam countdown
+  const ed=new Date(S.cfg.exam);
+  const dl=Math.ceil((ed-new Date())/86400000);
+  document.getElementById('dash-exam-days').textContent=dl>0?`${dl} days`:dl===0?'TODAY!!':'DONE';
+  // subject bars
+  const ns=neetStats();
+  document.getElementById('dash-subj-bars').innerHTML=`
+    <div class="mb1"><div class="flex jc-b mb1"><span class="fd" style="font-size:9px;color:var(--dim)">PHYSICS</span><span class="txt-blue fd" style="font-size:10px">${ns.physPct}%</span></div><div class="xp-rail"><div class="xp-fill" style="width:${ns.physPct}%;background:linear-gradient(90deg,#1d4ed8,var(--blue))"></div></div></div>
+    <div class="mb1"><div class="flex jc-b mb1"><span class="fd" style="font-size:9px;color:var(--dim)">CHEMISTRY</span><span class="txt-green fd" style="font-size:10px">${ns.chemPct}%</span></div><div class="xp-rail"><div class="xp-fill" style="width:${ns.chemPct}%;background:linear-gradient(90deg,#047857,var(--green))"></div></div></div>
+    <div><div class="flex jc-b mb1"><span class="fd" style="font-size:9px;color:var(--dim)">BIOLOGY</span><span class="txt-purple fd" style="font-size:10px">${ns.bioPct}%</span></div><div class="xp-rail"><div class="xp-fill" style="width:${ns.bioPct}%;background:linear-gradient(90deg,#6d28d9,var(--purple))"></div></div></div>`;
+  // active quests
+  const aq=(S.quests||[]).filter(q=>!q.done).slice(0,3);
+  document.getElementById('dash-aq').innerHTML=aq.length===0?
+    '<div class="txt-dim fm" style="font-size:12px;padding:8px 0;">No active quests. Generate some with AI!</div>':
+    aq.map(q=>`<div class="qcard" style="padding:10px 12px;margin-bottom:7px;" onclick="navTo('quests')">
+      <div class="flex ai-c gap1 mb1"><span class="qtag qt-${q.type||'daily'}">${(q.type||'daily').toUpperCase()}</span><span class="fd" style="font-size:11px;color:var(--white)">${q.title}</span></div>
+      <div class="q-prog-rail"><div class="q-prog-fill" style="width:${q.pct||0}%"></div></div></div>`).join('');
+  // workout
+  document.getElementById('d-wo-stk').textContent=(S.wStreak||0)+'🔥';
+  const todayWO=(S.workouts||[]).find(w=>w.date===new Date().toDateString());
+  document.getElementById('d-today-wo').textContent=todayWO?`✓ ${todayWO.type} — ${(todayWO.exs||[]).length} exercises`:'No workout logged today.';
+}
+
+/* ============================================================
+   STATS
+============================================================ */
+function renderStats(){
+  const {stats,level,rank,xp,streak,life,class:cls,statPts,eqTitle}=S;
+  const bars=`
+    ${sbarRow('INT','int',stats.int,'sf-int')}
+    ${sbarRow('STR','str',stats.str,'sf-str')}
+    ${sbarRow('END','end',stats.end,'sf-end')}
+    ${sbarRow('AGI','agi',stats.agi,'sf-agi')}
+    ${sbarRow('PER','per',stats.per,'sf-per')}
+    ${sbarRow('LUK','luk',stats.luk,'sf-luk')}`;
+  document.getElementById('stat-bars-el').innerHTML=bars;
+  document.getElementById('sp-lv').textContent=level;
+  document.getElementById('sp-rank').textContent=rank;
+  document.getElementById('sp-class').textContent=cls||'—';
+  document.getElementById('sp-stk').textContent=streak||0;
+  const need=XP_FOR_LEVEL(level);
+  document.getElementById('sp-xp-fill').style.width=`${Math.min(100,(xp/need)*100)}%`;
+  document.getElementById('sp-xp-lbl').textContent=`${xp} / ${need} XP`;
+  document.getElementById('ls-q').textContent=life.qDone;
+  document.getElementById('ls-xp').textContent=life.totalXP;
+  document.getElementById('ls-sh').textContent=Math.floor((life.studyMins||0)/60)+'h';
+  document.getElementById('ls-wo').textContent=life.woDone;
+  document.getElementById('stats-title').textContent=`${S.name||'HUNTER'} — STATUS WINDOW`;
+  document.getElementById('sp-pts').textContent=statPts||0;
+  const t=TITLES.find(x=>x.id===eqTitle);
+  document.getElementById('eq-title-display').textContent=t?`[ ${t.name} ] — ${t.bonus}`:'No title equipped.';
+  // active skills
+  const as=(S.skills||[]).map(id=>SKILLS.find(sk=>sk.id===id)).filter(Boolean);
+  document.getElementById('active-skills-display').innerHTML=as.length===0?
+    '<span class="txt-dim fm" style="font-size:11px;">No skills unlocked.</span>':
+    as.map(sk=>`<span class="tag" style="background:var(--p10);border-color:var(--p30);color:var(--purple);">${sk.icon} ${sk.name}</span>`).join('');
+  // rank req
+  const ri=RANKS.indexOf(rank);
+  const nr=RANKS[ri+1];
+  const rrel=document.getElementById('rank-req-el');
+  if(!nr){rrel.innerHTML='<div class="txt-gold fd" style="font-size:14px;text-align:center;">👑 MAXIMUM RANK</div>';return;}
+  const req=RANK_REQ_LEVEL[nr];
+  const pct=Math.min(100,(level/req)*100);
+  rrel.innerHTML=`<div class="flex jc-b ai-c mb1"><span class="txt-dim fm" style="font-size:11px;">Current → Next Rank</span><span class="fd" style="color:${RANK_COLORS[nr]};font-size:14px;">${rank} → ${nr}</span></div>
+  <div class="flex jc-b ai-c mb1"><span class="txt-dim" style="font-size:12px;">Required Level</span><span class="txt-blue fd" style="font-size:14px;">${req}</span></div>
+  <div class="xp-rail" style="height:10px;margin-top:6px;"><div class="xp-fill" style="width:${pct}%;background:linear-gradient(90deg,${RANK_COLORS[rank]},${RANK_COLORS[nr]})"></div></div>
+  <div class="flex jc-b mt1"><span class="txt-dim fm" style="font-size:10px;">Your Level: ${level}</span><span class="txt-dim fm" style="font-size:10px;">${pct.toFixed(0)}%</span></div>`;
+}
+function sbarRow(k,id,v,cls){
+  const pct=Math.min(100,(v/200)*100);
+  return `<div class="sbar-row"><div class="sbar-key">${k}</div><div class="sbar-rail"><div class="sbar-fill ${cls}" style="width:${pct}%"></div></div><div class="sbar-val">${v}</div></div>`;
+}
+
+/* ============================================================
+   QUESTS
+============================================================ */
+function renderQuests(){
+  const qs=S.quests||[];
+  const render=(type)=>{
+    const list=qs.filter(q=>q.type===type);
+    if(!list.length) return `<div class="txt-dim fm" style="font-size:12px;padding:8px 0;">No ${type} quests. <span style="color:var(--blue);cursor:pointer;" onclick="generateAIQuests()">Generate with AI ⚡</span></div>`;
+    return list.map(q=>qCard(q)).join('');
+  };
+  document.getElementById('q-daily').innerHTML=render('daily');
+  document.getElementById('q-weekly').innerHTML=render('weekly');
+  document.getElementById('q-emergency').innerHTML=qs.filter(q=>q.type==='emergency').length?qs.filter(q=>q.type==='emergency').map(q=>qCard(q)).join(''):'<div class="txt-dim fm" style="font-size:12px;padding:8px 0;">No emergency quests. You\'re on track, Hunter. 🟢</div>';
+  document.getElementById('q-main').innerHTML=render('main');
+  // update daily title with reset timer
+  const tomorrow=new Date(); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(0,0,0,0);
+  const hrs=Math.ceil((tomorrow-new Date())/3600000);
+  document.getElementById('daily-title').textContent=`⚡ DAILY QUESTS — resets in ${hrs}h`;
+}
+function qCard(q){
+  const pct=q.target>1?Math.min(100,Math.floor(((q.cur||0)/q.target)*100)):q.done?100:0;
+  return `<div class="qcard ${q.done?'done':''} ${q.type==='emergency'?'emergency':''}" id="qc-${q.id}">
+    <div class="qtag qt-${q.type}">${q.type.toUpperCase()}</div>
+    <div class="q-title">${esc(q.title)}</div>
+    <div class="q-desc">${esc(q.desc)}</div>
+    <div class="q-rewards">
+      <span class="qr xp">⚡ ${q.xp||50} XP</span>
+      ${q.stat?`<span class="qr stat">📈 +${q.statVal||1} ${q.stat.toUpperCase()}</span>`:''}
+      ${q.titleRew?`<span class="qr title">👑 "${esc(q.titleRew)}"</span>`:''}
+    </div>
+    ${q.target>1?`<div class="q-prog-rail"><div class="q-prog-fill" style="width:${pct}%"></div></div><div class="q-count">${q.cur||0} / ${q.target}</div>`:''}
+    ${!q.done?`<div class="q-acts">
+      ${q.target>1?`<input type="number" class="ex-inp" min="0" max="${q.target}" value="${q.cur||0}" style="width:60px;" onchange="updateQProg('${q.id}',+this.value)">`:''}
+      <button class="btn btn-green btn-sm" onclick="doneQuest('${q.id}')">✓ COMPLETE</button>
+      <button class="btn btn-red btn-sm" onclick="dropQuest('${q.id}')">✗</button>
+    </div>`:''}
+  </div>`;
+}
+function doneQuest(id){
+  const q=(S.quests||[]).find(x=>x.id===id);
+  if(!q||q.done) return;
+  q.done=true; q.doneAt=Date.now();
+  S.life.qDone=(S.life.qDone||0)+1;
+  gainXP(q.xp||50);
+  if(q.stat && S.stats[q.stat]!==undefined) S.stats[q.stat]=(S.stats[q.stat]||0)+(q.statVal||1);
+  if(q.titleRew){
+    const t=TITLES.find(x=>x.name===q.titleRew);
+    if(t && !(S.titles||[]).includes(t.id)){
+      if(!S.titles) S.titles=['awakened'];
+      S.titles.push(t.id);
+      toast(`👑 Title Unlocked: ${t.name}!`,'success');
+    }
+  }
+  save(); renderQuests(); renderDash(); renderHUD();
+  toast(`✓ Quest complete! +${q.xp||50} XP`,'success');
+  sysAlert(`Quest "${q.title}" completed. Power recorded.`);
+}
+function dropQuest(id){
+  S.quests=(S.quests||[]).filter(q=>q.id!==id);
+  save(); renderQuests(); renderDash(); renderHUD();
+  toast('Quest abandoned.','info');
+}
+function updateQProg(id,val){
+  const q=(S.quests||[]).find(x=>x.id===id);
+  if(!q) return;
+  q.cur=Math.max(0,Math.min(q.target,val));
+  q.pct=Math.floor((q.cur/q.target)*100);
+  save(); renderQuests();
+}
+function openCustomQuestModal(){
+  openGModal(`
+    <div class="modal-title txt-blue">+ CUSTOM QUEST</div>
+    <div class="modal-sub">Define your own mission.</div>
+    <div class="fg"><label class="fl">TITLE</label><input type="text" class="fi" id="cq-t" placeholder="Quest name..."></div>
+    <div class="fg"><label class="fl">DESCRIPTION</label><textarea class="fi" id="cq-d" placeholder="Describe the quest..."></textarea></div>
+    <div class="g2 keep">
+      <div class="fg"><label class="fl">TYPE</label><select class="fi" id="cq-type"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="main">Main</option></select></div>
+      <div class="fg"><label class="fl">XP REWARD</label><input type="number" class="fi" id="cq-xp" value="100" min="10" max="5000"></div>
+    </div>
+    <div class="g2 keep">
+      <div class="fg"><label class="fl">STAT BONUS</label><select class="fi" id="cq-stat"><option value="">None</option><option>int</option><option>str</option><option>end</option><option>agi</option><option>per</option><option>luk</option></select></div>
+      <div class="fg"><label class="fl">BONUS VALUE</label><input type="number" class="fi" id="cq-sv" value="1" min="1" max="20"></div>
+    </div>
+    <button class="btn btn-blue btn-full btn-lg" onclick="addCustomQuest()">📋 ADD QUEST</button>`);
+}
+function addCustomQuest(){
+  const t=document.getElementById('cq-t')?.value?.trim();
+  if(!t){toast('Enter a quest title!','error');return;}
+  const q={
+    id:'cq_'+Date.now(),title:t,
+    desc:document.getElementById('cq-d')?.value||'',
+    type:document.getElementById('cq-type')?.value||'daily',
+    xp:parseInt(document.getElementById('cq-xp')?.value)||100,
+    stat:document.getElementById('cq-stat')?.value||null,
+    statVal:parseInt(document.getElementById('cq-sv')?.value)||1,
+    done:false,pct:0,cur:0,target:1
+  };
+  if(!S.quests) S.quests=[];
+  S.quests.push(q);
+  save(); renderQuests(); renderDash(); renderHUD();
+  closeGModal(); toast('Quest added!','success');
+}
+
+/* ============================================================
+   NEET
+============================================================ */
+function neetStats(){
+  const p=S.neet.physics, c=S.neet.chemistry, b=S.neet.biology;
+  return {
+    physPct:avg(p),chemPct:avg(c),bioPct:avg(b),
+    physDone:p.filter(x=>x>=100).length,
+    chemDone:c.filter(x=>x>=100).length,
+    bioDone:b.filter(x=>x>=100).length,
+  };
+}
+function neetOverall(s){
+  const all=[...(s.neet?.physics||[]),...(s.neet?.chemistry||[]),...(s.neet?.biology||[])];
+  return avg(all);
+}
+function avg(arr){return arr.length?Math.floor(arr.reduce((a,b)=>a+b,0)/arr.length):0;}
+function renderNEET(){
+  const ns=neetStats();
+  const sub={physics:{pct:ns.physPct,done:ns.physDone,total:NEET.physics.length,col:'var(--blue)'},
+    chemistry:{pct:ns.chemPct,done:ns.chemDone,total:NEET.chemistry.length,col:'var(--green)'},
+    biology:{pct:ns.bioPct,done:ns.bioDone,total:NEET.biology.length,col:'var(--purple)'}};
+  document.getElementById('subj-overview').innerHTML=Object.entries(sub).map(([k,v])=>`
+    <div class="sc" style="border-color:${v.col}20;"><div class="sc-v" style="color:${v.col}">${v.pct}%</div><div class="sc-l">${k.toUpperCase()} (${v.done}/${v.total})</div></div>`).join('');
+  renderChapters(curSub);
+  renderMocks();
+  updateStudyDisplay();
+  document.getElementById('study-goal-lbl').textContent=`${Math.floor(S.cfg.studyMins/60)}h / day`;
+}
+function switchSub(s){curSub=s;renderChapters(s);}
+function renderChapters(sub){
+  const chapters=NEET[sub];
+  const progress=S.neet[sub];
+  const cols={physics:'var(--blue)',chemistry:'var(--green)',biology:'var(--purple)'};
+  const col=cols[sub];
+  document.getElementById('ch-view').innerHTML=`
+    <div class="ptitle" style="color:${col};margin-top:4px;">${sub.toUpperCase()} — ${chapters.length} CHAPTERS</div>
+    <div class="ch-grid">${chapters.map((ch,i)=>{
+      const p=progress[i]||0;
+      const cls=p>=100?'done':p>0?'doing':'';
+      return `<div class="ch-item ${cls}" onclick="openChModal('${sub}',${i})">
+        <div class="ch-n">${esc(ch)}</div>
+        <div class="ch-p fm">${p}%</div>
+        <div class="ch-bar"><div class="ch-fill" style="width:${p}%;background:${col}"></div></div>
+      </div>`;
+    }).join('')}</div>`;
+}
+function openChModal(sub,i){
+  const ch=NEET[sub][i];
+  const cur=S.neet[sub][i]||0;
+  openGModal(`
+    <div class="modal-title txt-blue">Update Chapter Progress</div>
+    <div class="modal-sub" style="font-size:13px;">${esc(ch)}</div>
+    <div class="fg">
+      <label class="fl">COMPLETION</label>
+      <input type="range" id="ch-sl" min="0" max="100" step="5" value="${cur}" oninput="document.getElementById('ch-sv').textContent=this.value+'%'">
+      <div class="txt-blue fd mt1" id="ch-sv" style="font-size:18px;text-align:center;">${cur}%</div>
+    </div>
+    <div class="flex gap2">
+      <button class="btn btn-green btn-full" onclick="saveChapter('${sub}',${i})">SAVE</button>
+      <button class="btn btn-blue btn-full" onclick="saveChapter('${sub}',${i},100)">MARK DONE ✓</button>
+    </div>`);
+}
+function saveChapter(sub,i,force){
+  const val=force!==undefined?force:parseInt(document.getElementById('ch-sl')?.value||0);
+  const old=S.neet[sub][i]||0;
+  S.neet[sub][i]=val;
+  if(val>=100&&old<100){
+    gainXP(30);
+    S.stats.int=(S.stats.int||10)+1;
+    toast('📚 Chapter complete! +30 XP, +1 INT','success');
+  }
+  save(); renderNEET(); renderHUD(); closeGModal();
+}
+function updateStudyDisplay(){
+  const today=new Date().toDateString();
+  const mins=(S.studySess||[]).filter(s=>s.date===today).reduce((a,b)=>a+(b.mins||0),0);
+  const h=Math.floor(mins/60),m=mins%60;
+  document.getElementById('today-study').textContent=`${h}h ${m}m`;
+}
+function renderMocks(){
+  document.getElementById('mt-cnt').textContent=(S.mocks||[]).length;
+  if(S.mocks.length){
+    const sc=S.mocks.map(t=>t.score);
+    document.getElementById('mt-avg').textContent=Math.round(sc.reduce((a,b)=>a+b,0)/sc.length);
+    document.getElementById('mt-best').textContent=Math.max(...sc);
+  }
+  const ml=document.getElementById('mt-list');
+  if(!S.mocks.length){ml.innerHTML='<div class="txt-dim fm" style="font-size:12px;">No tests logged yet.</div>';return;}
+  ml.innerHTML=S.mocks.slice(-10).reverse().map(t=>`
+    <div class="flex jc-b ai-c" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+      <div><div class="fd" style="font-size:10px;color:var(--white)">${t.date}</div><div class="fm txt-dim" style="font-size:9px;">${esc(t.notes||'—')}</div></div>
+      <div class="fd" style="font-size:22px;font-weight:700;color:${t.score>=600?'var(--gold)':t.score>=450?'var(--blue)':'var(--red)'}">${t.score}</div>
+    </div>`).join('');
+}
+function openMockModal(){
+  openGModal(`
+    <div class="modal-title txt-purple">📝 LOG MOCK TEST</div>
+    <div class="fg mt2"><label class="fl">TOTAL SCORE (out of 720)</label><input type="number" class="fi" id="mt-total" min="0" max="720" placeholder="e.g. 520"></div>
+    <div class="g2 keep">
+      <div class="fg"><label class="fl">Physics (0–180)</label><input type="number" class="fi" id="mt-p" min="0" max="180"></div>
+      <div class="fg"><label class="fl">Chemistry (0–180)</label><input type="number" class="fi" id="mt-c" min="0" max="180"></div>
+    </div>
+    <div class="fg"><label class="fl">Biology (0–360)</label><input type="number" class="fi" id="mt-b" min="0" max="360"></div>
+    <div class="fg"><label class="fl">NOTES</label><textarea class="fi" id="mt-notes" placeholder="Weak areas? Mistakes?"></textarea></div>
+    <button class="btn btn-purple btn-full btn-lg" onclick="saveMock()">📊 SUBMIT</button>`);
+}
+function saveMock(){
+  const score=parseInt(document.getElementById('mt-total')?.value||0);
+  if(!score||score<0||score>720){toast('Enter a valid score (0-720)!','error');return;}
+  const m={score,physics:parseInt(document.getElementById('mt-p')?.value||0),chemistry:parseInt(document.getElementById('mt-c')?.value||0),biology:parseInt(document.getElementById('mt-b')?.value||0),notes:document.getElementById('mt-notes')?.value||'',date:new Date().toLocaleDateString()};
+  if(!S.mocks) S.mocks=[];
+  S.mocks.push(m);
+  gainXP(150); S.stats.int=(S.stats.int||10)+2;
+  toast(`📝 Mock logged! +150 XP, +2 INT`,'success');
+  save(); renderMocks(); renderHUD(); closeGModal();
+}
+
+/* ============================================================
+   TIMER
+============================================================ */
+let pomoCount=0;
+function renderPomoDisplay(){
+  const dots=document.getElementById('pomo-dots');
+  if(!dots) return;
+  dots.innerHTML=Array.from({length:4},(_,i)=>`<div class="pomo-dot ${i<pomoCount?'done':i===pomoCount&&timerOn&&!timerBreak?'active':''}"></div>`).join('');
+}
+function toggleTimer(){
+  if(timerOn) pauseTimer();
+  else startTimer();
+}
+function startTimer(){
+  timerOn=true;
+  timerStart=timerStart||Date.now();
+  document.getElementById('timer-play-btn').textContent='⏸ PAUSE';
+  timerTick=setInterval(tickTimer,1000);
+}
+function pauseTimer(){
+  timerOn=false; clearInterval(timerTick);
+  document.getElementById('timer-play-btn').textContent='▶ RESUME';
+  if(timerStart && !timerBreak){
+    const mins=Math.floor((Date.now()-timerStart)/60000);
+    if(mins>0) recordStudy(mins);
+    timerStart=null;
+  }
+}
+function tickTimer(){
+  if(timerSec>0){
+    timerSec--;
+    updateTimerDisp();
+    const d=document.getElementById('timer-disp');
+    if(timerSec<=10&&!timerBreak) d.classList.add('urgent');
+    else d.classList.remove('urgent');
+  } else {
+    clearInterval(timerTick); timerOn=false;
+    if(!timerBreak){
+      const sub=document.getElementById('timer-sub')?.value||'physics';
+      recordStudy(25);
+      pomoCount=Math.min(4,pomoCount+1);
+      toast('📚 Pomodoro complete! +75 XP','success');
+      if(pomoCount>=4){
+        timerSec=15*60; timerBreak=true;
+        toast('🏆 4 pomodoros done! Long break (15 min)','warning');
+        pomoCount=0;
+      } else {
+        timerSec=5*60; timerBreak=true;
+        toast('☕ Short break time (5 min)','info');
+      }
+    } else {
+      timerSec=25*60; timerBreak=false;
+      toast('🎯 Break over! Focus session starting.','info');
+    }
+    timerStart=null;
+    renderPomoDisplay();
+    updateTimerDisp();
+    const d=document.getElementById('timer-disp');
+    d.className=`timer-big ${timerBreak?'break':''}`;
+    document.getElementById('timer-lbl').textContent=timerBreak?'☕ Break Time':'🎯 Focus Session';
+    document.getElementById('timer-play-btn').textContent='▶ START';
+  }
+  renderPomoDisplay();
+}
+function resetTimer(){
+  clearInterval(timerTick); timerOn=false; timerStart=null;
+  timerSec=timerBreak?5*60:25*60;
+  document.getElementById('timer-play-btn').textContent='▶ START';
+  document.getElementById('timer-disp').classList.remove('urgent');
+  updateTimerDisp();
+}
+function toggleBreak(){
+  clearInterval(timerTick); timerOn=false; timerStart=null;
+  timerBreak=!timerBreak;
+  timerSec=timerBreak?5*60:25*60;
+  document.getElementById('timer-disp').className=`timer-big ${timerBreak?'break':''}`;
+  document.getElementById('timer-lbl').textContent=timerBreak?'☕ Break Time':'🎯 Focus Session';
+  document.getElementById('timer-play-btn').textContent='▶ START';
+  updateTimerDisp();
+}
+function updateTimerDisp(){
+  const m=String(Math.floor(timerSec/60)).padStart(2,'0');
+  const s=String(timerSec%60).padStart(2,'0');
+  const d=document.getElementById('timer-disp');
+  if(d) d.textContent=`${m}:${s}`;
+}
+function recordStudy(mins){
+  const sub=document.getElementById('timer-sub')?.value||'physics';
+  if(!S.studySess) S.studySess=[];
+  S.studySess.push({date:new Date().toDateString(),mins,sub});
+  S.life.studyMins=(S.life.studyMins||0)+mins;
+  gainXP(mins*3);
+  S.stats.int=(S.stats.int||10)+Math.floor(mins/20);
+  save(); renderHUD(); updateStudyDisplay();
+}
+
+/* ============================================================
+   COUNTDOWN
+============================================================ */
+function startCountdown(){
+  function upd(){
+    const exam=new Date(S.cfg.exam+'T09:00:00');
+    const diff=exam-new Date();
+    if(diff<=0){
+      ['cd-d','cd-h','cd-m','cd-s'].forEach((id,i)=>{document.getElementById(id).textContent=['EXAM','DAY','!!','💥'][i];});
+      return;
+    }
+    document.getElementById('cd-d').textContent=String(Math.floor(diff/86400000)).padStart(3,'0');
+    document.getElementById('cd-h').textContent=String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+    document.getElementById('cd-m').textContent=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    document.getElementById('cd-s').textContent=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+    const el=document.getElementById('dash-exam-days');
+    if(el) el.textContent=Math.floor(diff/86400000)+' days';
+  }
+  upd(); setInterval(upd,1000);
+}
+
+/* ============================================================
+   WORKOUT
+============================================================ */
+function renderWorkout(){
+  document.getElementById('w-stk').textContent=(S.wStreak||0)+'🔥';
+  document.getElementById('w-total').textContent=(S.workouts||[]).length;
+  const weekWO=(S.workouts||[]).filter(w=>{const d=Date.now()-new Date(w.ts||0).getTime();return d<7*86400000;}).length;
+  document.getElementById('w-week').textContent=weekWO;
+  document.getElementById('w-xp').textContent=(S.workouts||[]).reduce((a,b)=>a+(b.xp||0),0);
+  renderExList();
+  renderWOHistory();
+  renderWeeklySplit();
+}
+function renderExList(){
+  const el=document.getElementById('ex-list');
+  if(!el) return;
+  if(!exList.length){el.innerHTML='<div class="txt-dim fm" style="font-size:12px;padding:8px 0;">No exercises added yet.</div>';return;}
+  el.innerHTML=exList.map((ex,i)=>`
+    <div class="ex-row">
+      <div class="ex-info"><div class="ex-name">${esc(ex.name)}</div><div class="ex-cat fd">${esc(ex.cat||'')}</div></div>
+      <div class="ex-nums">
+        <input type="number" class="ex-inp" value="${ex.sets||3}" min="1" max="20" title="Sets" onchange="exList[${i}].sets=+this.value">
+        <span class="ex-sep">×</span>
+        <input type="number" class="ex-inp" value="${ex.reps||10}" min="1" max="200" title="Reps" onchange="exList[${i}].reps=+this.value">
+      </div>
+      <button class="btn btn-red btn-sm" onclick="removeEx(${i})">✗</button>
+    </div>`).join('');
+}
+function removeEx(i){exList.splice(i,1);renderExList();}
+function openAddExModal(){
+  openGModal(`
+    <div class="modal-title txt-green">+ ADD EXERCISE</div>
+    <div class="fg mt2"><label class="fl">EXERCISE NAME</label><input type="text" class="fi" id="ex-nm" placeholder="e.g. Bench Press, Pull-ups..." autocomplete="off"></div>
+    <div class="fg"><label class="fl">CATEGORY</label><select class="fi" id="ex-ct"><option>Chest</option><option>Back</option><option>Shoulders</option><option>Arms</option><option>Legs</option><option>Core</option><option>Cardio</option><option>Other</option></select></div>
+    <div class="g2 keep">
+      <div class="fg"><label class="fl">SETS</label><input type="number" class="fi" id="ex-s" value="3" min="1" max="20"></div>
+      <div class="fg"><label class="fl">REPS</label><input type="number" class="fi" id="ex-r" value="10" min="1" max="200"></div>
+    </div>
+    <button class="btn btn-green btn-full btn-lg" onclick="confirmAddEx()">+ ADD EXERCISE</button>`);
+}
+function confirmAddEx(){
+  const nm=document.getElementById('ex-nm')?.value?.trim();
+  if(!nm){toast('Enter exercise name!','error');return;}
+  exList.push({name:nm,cat:document.getElementById('ex-ct')?.value||'',sets:parseInt(document.getElementById('ex-s')?.value)||3,reps:parseInt(document.getElementById('ex-r')?.value)||10});
+  renderExList(); closeGModal();
+}
+function completeWorkout(){
+  if(!exList.length){toast('Add at least one exercise first!','error');return;}
+  const type=document.getElementById('wo-type')?.value||'custom';
+  const notes=document.getElementById('wo-notes')?.value||'';
+  const xpEarned=120+exList.length*20;
+  const wo={type,exs:[...exList],notes,xp:xpEarned,date:new Date().toDateString(),ts:Date.now()};
+  if(!S.workouts) S.workouts=[];
+  S.workouts.push(wo);
+  S.life.woDone=(S.life.woDone||0)+1;
+  // streak
+  const prev=S.workouts.slice(-2)[0];
+  if(prev){const diff=(Date.now()-prev.ts)/86400000;S.wStreak=diff<=1.5?(S.wStreak||0)+1:1;}
+  else S.wStreak=1;
+  // stat gains
+  S.stats.str=(S.stats.str||10)+Math.ceil(exList.length/2);
+  S.stats.end=(S.stats.end||10)+1;
+  gainXP(xpEarned);
+  exList=[];
+  if(document.getElementById('wo-notes')) document.getElementById('wo-notes').value='';
+  save(); renderWorkout(); renderHUD(); renderDash();
+  toast(`⚔️ Session complete! +${xpEarned} XP, +STR, +END`,'success');
+  sysAlert(`Training session recorded. STR and END have increased.`);
+}
+function renderWOHistory(){
+  const wh=document.getElementById('wo-history');
+  if(!wh) return;
+  const wos=(S.workouts||[]).slice(-12).reverse();
+  if(!wos.length){wh.innerHTML='<div class="txt-dim fm" style="font-size:12px;">No sessions logged yet.</div>';return;}
+  wh.innerHTML=wos.map(w=>`<div class="wh-item"><div class="wh-top"><div class="wh-type">${esc(w.type||'Workout').toUpperCase()}</div><div class="wh-xp">+${w.xp||0} XP</div></div><div class="wh-meta">${esc(w.date||'')} — ${(w.exs||[]).length} exercises${w.notes?` — ${esc(w.notes.slice(0,40))}`:''}</div></div>`).join('');
+}
+function renderWeeklySplit(){
+  const now=new Date();
+  const dow=now.getDay();// 0=sun
+  for(let i=1;i<=7;i++){
+    const el=document.getElementById(`wsb-${i}`);
+    if(!el) continue;
+    const offset=i-1-((dow+6)%7);
+    const target=new Date(now.getTime()+offset*86400000);
+    const ds=target.toDateString();
+    const done=(S.workouts||[]).some(w=>w.date===ds);
+    el.className=`ws-bar ${done?'active':''}`;
+  }
+}
+
+/* ============================================================
+   INVENTORY
+============================================================ */
+function renderInventory(){
+  // titles
+  const tl=document.getElementById('titles-list');
+  tl.innerHTML=TITLES.map(t=>{
+    const owned=(S.titles||[]).includes(t.id);
+    return `<div class="title-card ${owned?'owned':''}">
+      <div class="title-ico">${t.icon}</div>
+      <div class="title-info"><div class="title-n">${t.name}</div><div class="title-bonus">${t.bonus}</div></div>
+      ${owned?`<button class="btn btn-gold btn-sm" style="${S.eqTitle===t.id?'background:var(--g20);':''}" onclick="equipTitle('${t.id}')">${S.eqTitle===t.id?'✓ ON':'EQUIP'}</button>`:'<span class="fm txt-dim" style="font-size:10px;">🔒</span>'}
+    </div>`;}).join('');
+  // skills
+  const sk=document.getElementById('skill-tree-el');
+  sk.innerHTML=SKILLS.map(s=>{
+    const owned=(S.skills||[]).includes(s.id);
+    const can=S.level>=s.req&&!owned;
+    return `<div class="skill-card ${owned?'unlocked':can?'can-unlock':''}">
+      <div class="sk-icon">${s.icon}</div>
+      <div class="sk-name">${s.name}</div>
+      <div class="sk-desc">${s.desc}</div>
+      <div class="sk-req">Lv.${s.req}</div>
+      ${can?`<button class="btn btn-purple btn-sm btn-full mt1" onclick="unlockSkill('${s.id}')">UNLOCK</button>`:''}
+    </div>`;}).join('');
+  // achievements
+  const ag=document.getElementById('ach-grid');
+  ag.innerHTML=ACHIEVEMENTS.map(a=>{
+    const done=(S.achiev||[]).includes(a.id)||a.fn(S);
+    return `<div class="ach-card ${done?'unlocked':''}"><div class="ach-icon">${a.icon}</div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>`;}).join('');
+}
+function equipTitle(id){
+  S.eqTitle=id; save(); renderHUD(); renderStats(); renderInventory();
+  const t=TITLES.find(x=>x.id===id);
+  toast(`👑 Equipped: ${t?.name}`,'success');
+}
+function unlockSkill(id){
+  const sk=SKILLS.find(s=>s.id===id);
+  if(!sk||(S.skills||[]).includes(id)){toast('Already unlocked!','info');return;}
+  if(!S.skills) S.skills=[];
+  S.skills.push(id);
+  if(sk.stat==='all') Object.keys(S.stats).forEach(k=>S.stats[k]+=sk.bonus);
+  else if(sk.bonus>0) S.stats[sk.stat]=(S.stats[sk.stat]||0)+sk.bonus;
+  save(); renderAll();
+  toast(`⚡ Skill Unlocked: ${sk.name}!`,'success');
+}
+
+/* ============================================================
+   ACHIEVEMENTS CHECK
+============================================================ */
+function checkAchiev(){
+  ACHIEVEMENTS.forEach(a=>{
+    if(!(S.achiev||[]).includes(a.id)&&a.fn(S)){
+      if(!S.achiev) S.achiev=[];
+      S.achiev.push(a.id);
+      setTimeout(()=>toast(`🏆 Achievement: ${a.name}!`,'warning'),400);
+      gainXP(200,true);
+    }
+  });
+  checkTitles();
+}
+function checkTitles(){
+  if((S.life.studyMins||0)>=600&&!(S.titles||[]).includes('studious')){
+    S.titles.push('studious');toast('👑 Title Unlocked: The Scholar!','success');
+  }
+  if((S.life.woDone||0)>=10&&!(S.titles||[]).includes('ironclad')){
+    S.titles.push('ironclad');toast('👑 Title Unlocked: The Ironclad!','success');
+  }
+  if((S.streak||0)>=7&&!(S.titles||[]).includes('relentless')){
+    S.titles.push('relentless');toast('👑 Title Unlocked: The Relentless!','success');
+  }
+  if(S.level>=20&&!(S.titles||[]).includes('s_aspirant')){
+    S.titles.push('s_aspirant');toast('👑 Title Unlocked: S-Rank Aspirant!','success');
+  }
+  if(neetOverall(S)>=50&&!(S.titles||[]).includes('neet_hunter')){
+    S.titles.push('neet_hunter');toast('👑 Title Unlocked: NEET Hunter!','success');
+  }
+}
+
+/* ============================================================
+   SETTINGS
+============================================================ */
+function renderSettings(){
+  const cfg=document.getElementById('cfg-name'); if(cfg) cfg.value=S.name||'';
+  const cfgc=document.getElementById('cfg-class'); if(cfgc) cfgc.value=S.class||'Shadow';
+  const cfge=document.getElementById('cfg-exam'); if(cfge) cfge.value=S.cfg.exam||'2026-05-03';
+  const cfgs=document.getElementById('cfg-study'); if(cfgs) cfgs.value=S.cfg.studyMins||360;
+  const cfgw=document.getElementById('cfg-wodpw'); if(cfgw) cfgw.value=S.cfg.wodpw||5;
+  const cfgk=document.getElementById('cfg-key'); if(cfgk) cfgk.value=apiKey||'';
+  const cfgm=document.getElementById('cfg-model'); if(cfgm) cfgm.value=S.cfg.model||'gpt-4o';
+  const cfgp=document.getElementById('cfg-persona'); if(cfgp) cfgp.value=S.cfg.persona||'system';
+}
+function saveProfile(){
+  S.name=document.getElementById('cfg-name')?.value?.trim()||'Hunter';
+  S.class=document.getElementById('cfg-class')?.value||'Shadow';
+  S.cfg.exam=document.getElementById('cfg-exam')?.value||'2026-05-03';
+  S.cfg.studyMins=parseInt(document.getElementById('cfg-study')?.value)||360;
+  S.cfg.wodpw=parseInt(document.getElementById('cfg-wodpw')?.value)||5;
+  save(); renderAll(); toast('Profile saved!','success');
+}
+async function saveAIConfig(){
+  const key=document.getElementById('cfg-key')?.value?.trim()||'';
+  S.cfg.model=document.getElementById('cfg-model')?.value||'gpt-4o';
+  S.cfg.persona=document.getElementById('cfg-persona')?.value||'system';
+  apiKey=key;
+  save();
+  const resEl=document.getElementById('api-test-res');
+  if(!key){resEl.style.color='var(--red)';resEl.textContent='No API key entered.';return;}
+  resEl.style.color='var(--dim)';resEl.textContent='🔄 Testing connection...';
+  const r=await callAI([{role:'user',content:'Respond with exactly: SYSTEM ONLINE'}],true);
+  if(r&&!r.startsWith('ERROR:')){
+    resEl.style.color='var(--green)';resEl.textContent='✓ Connected — '+r.trim();
+    document.getElementById('no-key-warn').style.display='none';
+    toast('AI System connected!','success');
+  } else {
+    resEl.style.color='var(--red)';resEl.textContent='✗ '+(r||'Connection failed. Check your API key.');
+    toast('Connection failed — check your key','error');
+  }
+}
+function toggleKeyVis(){
+  const inp=document.getElementById('cfg-key');
+  if(inp) inp.type=inp.type==='password'?'text':'password';
+}
+function confirmReset(){
+  openGModal(`
+    <div class="modal-title txt-red">⚠️ RESET ALL PROGRESS</div>
+    <div class="modal-sub">This will delete ALL your progress. Completely irreversible.</div>
+    <div class="sq mb2">"Are you sure you wish to abandon your path, Hunter? All data will be erased."</div>
+    <div class="flex gap2">
+      <button class="btn btn-red btn-full btn-lg" onclick="doReset()">💀 YES — RESET EVERYTHING</button>
+      <button class="btn btn-blue btn-full" onclick="closeGModal()">CANCEL</button>
+    </div>`);
+}
+function doReset(){
+  ['arise3','arise3_key','arise3_chat'].forEach(k=>localStorage.removeItem(k));
+  location.reload();
+}
+
+/* ============================================================
+   XP & LEVELING
+============================================================ */
+function gainXP(amt,silent=false){
+  if(!amt||amt<=0) return;
+  S.xp=(S.xp||0)+amt;
+  S.life.totalXP=(S.life.totalXP||0)+amt;
+  let leveled=false;
+  while(S.xp>=XP_FOR_LEVEL(S.level)){
+    S.xp-=XP_FOR_LEVEL(S.level);
+    S.level++;
+    S.statPts=(S.statPts||0)+3;
+    leveled=true;
+    if(!silent) showLU(S.level);
+  }
+  checkRankUp();
+  checkAchiev();
+  save(); renderHUD();
+  if(S.level%5===0&&leveled) Object.keys(S.stats).forEach(k=>S.stats[k]+=5);
+}
+function checkRankUp(){
+  const ri=RANKS.indexOf(S.rank);
+  const nr=RANKS[ri+1];
+  if(nr&&S.level>=RANK_REQ_LEVEL[nr]){
+    const old=S.rank; S.rank=nr;
+    save();
+    setTimeout(()=>showRU(old,nr),2800);
+  }
+}
+function showLU(lv){
+  const ov=document.getElementById('lu-overlay');
+  document.getElementById('lu-num').textContent=lv;
+  document.getElementById('lu-lbl').textContent=`${S.name||'HUNTER'} REACHES LEVEL ${lv}`;
+  const rws=['+3 Stat Points Available','Your enemies grow stronger. So do you.'];
+  if(lv%5===0) rws.push(`⭐ Milestone! +10 ALL stats`);
+  document.getElementById('lu-rws').innerHTML=rws.map((r,i)=>`<div class="lu-rw" style="animation-delay:${.3+i*.2}s">${r}</div>`).join('');
+  ov.classList.add('show');
+  spawnParticles();
+}
+function closeLU(){document.getElementById('lu-overlay').classList.remove('show');}
+function showRU(from,to){
+  const ov=document.getElementById('ru-overlay');
+  const fromEl=document.getElementById('ru-from'),toEl=document.getElementById('ru-to');
+  fromEl.textContent=from; fromEl.style.color=RANK_COLORS[from];
+  toEl.textContent=to; toEl.style.color=RANK_COLORS[to];
+  document.getElementById('ru-title-unlock').textContent='';
+  ov.classList.add('show');
+}
+function closeRU(){document.getElementById('ru-overlay').classList.remove('show');save();renderAll();}
+function spawnParticles(){
+  const c=document.getElementById('lu-particles');
+  c.innerHTML='';
+  for(let i=0;i<50;i++){
+    const p=document.createElement('div');
+    const col=['#ffd60a','#00d4ff','#9b5de5','#06ffa5','#ff3c6e'][Math.floor(Math.random()*5)];
+    const size=Math.random()*6+2;
+    p.style.cssText=`position:absolute;width:${size}px;height:${size}px;border-radius:50%;background:${col};left:${Math.random()*100}%;top:${Math.random()*100}%;animation:part-fly ${Math.random()*2+.8}s ease-out ${Math.random()*.5}s both;`;
+    c.appendChild(p);
+  }
+}
+
+/* ============================================================
+   STAT ALLOCATION MODAL
+============================================================ */
+function openAllocModal(){
+  if(!(S.statPts>0)){toast('No stat points available!','info');return;}
+  allocTmp={int:0,str:0,end:0,agi:0,per:0,luk:0};
+  openGModal(`
+    <div class="modal-title txt-gold">⚡ ALLOCATE STAT POINTS</div>
+    <div class="modal-sub">Available: <span id="al-rem" class="txt-gold fd" style="font-size:18px;">${S.statPts}</span> points</div>
+    <div class="divider"></div>
+    ${['int','str','end','agi','per','luk'].map(k=>`
+      <div class="flex ai-c jc-b mb1" style="gap:10px;">
+        <span class="fd txt-dim" style="font-size:10px;width:36px;">${k.toUpperCase()}</span>
+        <span class="fd txt-blue" id="al-v-${k}" style="font-size:16px;width:36px;">${S.stats[k]}</span>
+        <div class="flex gap1">
+          <button class="btn btn-red btn-sm" onclick="allocStat('${k}',-1)">−</button>
+          <button class="btn btn-green btn-sm" onclick="allocStat('${k}',1)">+</button>
+        </div>
+      </div>`).join('')}
+    <button class="btn btn-gold btn-full btn-lg" style="margin-top:16px;" onclick="commitAlloc()">✓ CONFIRM</button>
+    <button class="btn btn-blue btn-full" style="margin-top:6px;" onclick="closeGModal()">CANCEL</button>`);
+}
+function allocStat(stat,delta){
+  if(!allocTmp) allocTmp={int:0,str:0,end:0,agi:0,per:0,luk:0};
+  const spent=Object.values(allocTmp).reduce((a,b)=>a+b,0);
+  const rem=S.statPts-spent;
+  if(delta>0&&rem<=0){toast('No points left!','error');return;}
+  const newDelta=(allocTmp[stat]||0)+delta;
+  if(newDelta<0){toast('Cannot reduce below current!','error');return;}
+  allocTmp[stat]=newDelta;
+  const newSpent=Object.values(allocTmp).reduce((a,b)=>a+b,0);
+  const el=document.getElementById(`al-v-${stat}`);
+  if(el) el.textContent=S.stats[stat]+newDelta;
+  const rem2=S.statPts-newSpent;
+  const remEl=document.getElementById('al-rem');
+  if(remEl) remEl.textContent=rem2;
+}
+function commitAlloc(){
+  if(!allocTmp) return;
+  const spent=Object.values(allocTmp).reduce((a,b)=>a+b,0);
+  if(spent<=0){toast('No points allocated!','info');return;}
+  Object.entries(allocTmp).forEach(([k,v])=>{if(v>0) S.stats[k]=(S.stats[k]||0)+v;});
+  S.statPts=(S.statPts||0)-spent;
+  allocTmp=null;
+  save(); renderAll(); closeGModal();
+  toast(`Stats allocated! Spent ${spent} points.`,'success');
+}
+
+/* ============================================================
+   AI SYSTEM
+============================================================ */
+const PERSONAS = {
+  system:`You are THE SYSTEM — cold, calculating, omniscient. You speak in short, commanding, precise sentences. Call the user "Hunter." Use [SYSTEM] tags. NEVER be warm. You are pure power and logic. Use dramatic pauses (...). Uppercase for EMPHASIS. You exist only to make them stronger.`,
+  monarch:`You are the SHADOW MONARCH — dark, ancient, terrifyingly powerful. Grand weighty sentences. Call the user "my shadow." Disappointed by weakness, but acknowledge growth. Every word carries immense weight. "Arise, and conquer."`,
+  drill:`You are an elite drill sergeant. BRUTAL, direct, zero excuses. Military language. Short sentences. LOUD energy (CAPS, !!!). "MOVE FASTER. THINK HARDER. NO EXCUSES." You celebrate victories hard. You destroy laziness.`,
+  elder:`You are an Ancient Elder of infinite wisdom. Metaphors, philosophy, deep insight. Patient but firm. You connect every task to a larger life lesson. Speak in profound, measured sentences. Ask questions that make them reflect.`,
+  hype:`You are THE ULTIMATE HYPE COMMANDER. 🔥 EXPLOSIVE energy. CAPS EVERYWHERE. "LET'S GO!!! YOU'RE BUILT DIFFERENT!!!" Every single message is MAXIMUM motivation. Emojis. Fire. Unstoppable vibes. Make them feel INVINCIBLE.`
+};
+function getSystemPmt(){
+  const ns=neetStats();
+  const p=PERSONAS[S.cfg?.persona||'system'];
+  return `${p}
+
+Hunter Data:
+- Name: ${S.name||'Unknown'} | Level ${S.level} | Rank ${S.rank} | Class: ${S.class||'Unknown'}
+- Stats: INT:${S.stats.int} STR:${S.stats.str} END:${S.stats.end} AGI:${S.stats.agi} PER:${S.stats.per} LUK:${S.stats.luk}
+- NEET: Physics ${ns.physPct}% | Chemistry ${ns.chemPct}% | Biology ${ns.bioPct}%
+- Exam Date: ${S.cfg.exam} (${Math.ceil((new Date(S.cfg.exam)-new Date())/86400000)} days away)
+- Today's study: ${(S.studySess||[]).filter(s=>s.date===new Date().toDateString()).reduce((a,b)=>a+b.mins,0)} minutes
+- Workout streak: ${S.wStreak||0} days | Login streak: ${S.streak||0} days
+- Mock tests: ${S.mocks.length} | Best: ${S.mocks.length?Math.max(...S.mocks.map(t=>t.score)):'None'}
+- Total quests done: ${S.life.qDone} | Total study hours: ${Math.floor((S.life.studyMins||0)/60)}h
+
+Always be aware of NEET 2026. Be specific, actionable, and in-character.`;
+}
+async function callAI(messages,silent=false){
+  if(!apiKey){
+    if(!silent) toast('Add your OpenAI API key in Settings!','error');
+    return 'ERROR: No API key configured.';
+  }
+  try{
+    const res=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+      body:JSON.stringify({
+        model:S.cfg?.model||'gpt-4o',
+        max_tokens:1000,
+        temperature:0.85,
+        messages:[{role:'system',content:getSystemPmt()},...messages]
+      })
+    });
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      const msg=err?.error?.message||`HTTP ${res.status}`;
+      if(res.status===401) return 'ERROR: Invalid API key. Check Settings.';
+      if(res.status===429) return 'ERROR: Rate limit exceeded. Please wait and try again.';
+      if(res.status===402) return 'ERROR: Insufficient credits. Please top up your OpenAI account.';
+      return `ERROR: ${msg}`;
+    }
+    const data=await res.json();
+    return data?.choices?.[0]?.message?.content||'ERROR: Empty response from AI.';
+  }catch(e){
+    if(e.message?.includes('Failed to fetch')||e.message?.includes('NetworkError'))
+      return 'ERROR: Network error. Check your internet connection.';
+    return `ERROR: ${e.message||'Unknown error'}`;
+  }
+}
+async function sendMsg(){
+  const inp=document.getElementById('ai-input');
+  const msg=(inp?.value||'').trim();
+  if(!msg) return;
+  inp.value='';
+  if(!apiKey){document.getElementById('no-key-warn').style.display='block';toast('Set your OpenAI API key in Settings!','warning');return;}
+  appendChat('user',msg);
+  chatHist.push({role:'user',content:msg});
+  const typing=appendTyping();
+  const reply=await callAI(chatHist);
+  typing.remove();
+  if(reply.startsWith('ERROR:')){
+    appendChat('error',reply.replace('ERROR:','').trim());
+    chatHist.pop();
+  } else {
+    appendChat('system',reply);
+    chatHist.push({role:'assistant',content:reply});
+    save();
+  }
+}
+function appendChat(role,content){
+  const area=document.getElementById('ai-chat-area');
+  const cls=role==='user'?'msg-user':role==='error'?'msg-error':'msg-sys';
+  const d=document.createElement('div');
+  d.className=`chat-msg ${cls}`;
+  d.innerHTML=content.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  area.appendChild(d);
+  area.scrollTop=area.scrollHeight;
+  return d;
+}
+function appendTyping(){
+  const area=document.getElementById('ai-chat-area');
+  const d=document.createElement('div');
+  d.className='chat-typing-wrap';
+  d.innerHTML='<div class="typing-dots"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+  area.appendChild(d);
+  area.scrollTop=area.scrollHeight;
+  return d;
+}
+function clearChat(){
+  chatHist=[];
+  const area=document.getElementById('ai-chat-area');
+  if(area) area.innerHTML='';
+  save();
+  initChatWelcome();
+  toast('Chat cleared.','info');
+}
+function initChatWelcome(){
+  const area=document.getElementById('ai-chat-area');
+  if(!area) return;
+  const p=S.cfg?.persona||'system';
+  const msgs={
+    system:`[SYSTEM]: Hunter ${S.name||'Unknown'} detected. Level ${S.level}, Rank ${S.rank}. NEET exam in ${Math.max(0,Math.ceil((new Date(S.cfg.exam)-new Date())/86400000))} days. ... I am watching. Ask anything, or use the Quick Commands. Your progress will not be forgotten.`,
+    monarch:`Ah... you have awakened. I sense potential in you, my shadow. I am the Shadow Monarch — your guide, your judge, your mentor. Level ${S.level} is merely the beginning. Speak your purpose.`,
+    drill:`ATTENTION, HUNTER! I am your Drill Sergeant. Level ${S.level} — that's NOTHING yet. We have ${Math.max(0,Math.ceil((new Date(S.cfg.exam)-new Date())/86400000))} days until NEET. GET MOVING. What do you need?!`,
+    elder:`Welcome, young ${S.name||'Hunter'}... I have waited long for one such as you. ${Math.max(0,Math.ceil((new Date(S.cfg.exam)-new Date())/86400000))} days remain before the NEET examination. In that time, entire destinies are written. What wisdom do you seek?`,
+    hype:`🔥🔥🔥 YO ${(S.name||'HUNTER').toUpperCase()}!!! LEVEL ${S.level} AND WE ARE JUST GETTING STARTED!!! ${Math.max(0,Math.ceil((new Date(S.cfg.exam)-new Date())/86400000))} DAYS TO NEET AND YOU ARE GOING TO ABSOLUTELY CRUSH IT!!! LET'S GOOOOO!!!`
+  };
+  appendChat('system',msgs[p]||msgs.system);
+}
+async function aiCmd(cmd){
+  if(!apiKey){toast('Add your OpenAI API key in Settings!','warning');return;}
+  navTo('ai');
+  const cmds={
+    analyze:`Analyze my performance as a Hunter. Be specific and brutal. Physics ${neetStats().physPct}%, Chemistry ${neetStats().chemPct}%, Biology ${neetStats().bioPct}%. Workout streak: ${S.wStreak||0}. Login streak: ${S.streak||0}. Level ${S.level}, Rank ${S.rank}. Give me a clear assessment and what I must do next.`,
+    gen_quests:`Generate 6 powerful daily quests for me right now. Include 2 NEET study quests, 2 workout quests, 1 discipline/mindset quest, 1 wildcard. Make them specific, challenging, and inspiring. Format: NAME | Description | XP | Stat Bonus`,
+    study_plan:`Create my 7-day NEET study plan starting tomorrow. Physics: ${neetStats().physPct}% done, Chemistry: ${neetStats().chemPct}% done, Biology: ${neetStats().bioPct}% done. Focus on weakest areas. Assign chapters to specific days. Include study hours, breaks, and strategy.`,
+    workout_plan:`Design my complete weekly workout program. I need to stay fit for NEET focus — consider my energy levels. Level ${S.level}, STR:${S.stats.str}, END:${S.stats.end}. Create push/pull/legs or similar split with exact exercises, sets, reps. Make it intense but sustainable.`,
+    motivate:`I need EMERGENCY motivation right now. I'm not performing well. Level ${S.level}, Rank ${S.rank}. ${neetStats().physPct}% physics done. Push me beyond my limits. Make me WANT to get up and attack my goals. Don't hold back.`,
+    rank_up:`Assess my path to Rank ${RANKS[RANKS.indexOf(S.rank)+1]||'MAX'}. I'm at Level ${S.level}, need Level ${RANK_REQ_LEVEL[RANKS[RANKS.indexOf(S.rank)+1]]||'MAX'}. Stats: INT:${S.stats.int} STR:${S.stats.str} END:${S.stats.end}. Give me the exact roadmap to rank up.`
+  };
+  appendChat('user',cmds[cmd]);
+  chatHist.push({role:'user',content:cmds[cmd]});
+  const typing=appendTyping();
+  const reply=await callAI(chatHist);
+  typing.remove();
+  if(reply.startsWith('ERROR:')){
+    appendChat('error',reply.replace('ERROR:','').trim());
+    chatHist.pop();
+  } else {
+    appendChat('system',reply);
+    chatHist.push({role:'assistant',content:reply});
+    save();
+    // extract insight
+    document.getElementById('ai-insights-el').innerHTML=`<div class="sq" style="font-size:12px;">${reply.slice(0,200).replace(/\n/g,'<br>')}...</div>`;
+  }
+}
+async function generateAIQuests(){
+  if(!apiKey){toast('Add your OpenAI API key in Settings first!','warning');navTo('settings');return;}
+  const btn=document.getElementById('gen-ai-q-btn');
+  if(btn){btn.disabled=true;btn.textContent='⚡ GENERATING...';}
+  document.getElementById('ai-quest-bar').style.display='block';
+  const ns=neetStats();
+  const weak=ns.physPct<=ns.chemPct&&ns.physPct<=ns.bioPct?'Physics':ns.chemPct<=ns.bioPct?'Chemistry':'Biology';
+  const prompt=`Generate quests for the Hunter. Return ONLY a valid JSON array, no markdown or backticks:
+[{"id":"q_1","title":"Short Title","desc":"Clear description","type":"daily","xp":100,"stat":"int","statVal":2,"target":1,"cur":0,"pct":0,"done":false}]
+
+Rules:
+- "type" must be: "daily", "weekly", "main", or "emergency"
+- "stat" must be: "int","str","end","agi","per","luk" or null
+- "xp": 50-500, "statVal": 1-5, "target": 1 for simple quests, 5-20 for tracked ones
+- Generate: 3 daily NEET quests (focus on ${weak}), 2 daily workout quests, 1 daily mindset quest, 2 weekly quests, 1 main story quest${(S.streak||0)===0||S.life.qDone===0?', 1 emergency quest because Hunter has been inactive':''}
+- Make quests specific, actionable, personalized. NEET exam on ${S.cfg.exam}. Hunter level ${S.level}, NEET ${ns.physPct}%/${ns.chemPct}%/${ns.bioPct}%.`;
+  const reply=await callAI([{role:'user',content:prompt}]);
+  document.getElementById('ai-quest-bar').style.display='none';
+  if(btn){btn.disabled=false;btn.textContent='⚡ AI GENERATE';}
+  if(!reply||reply.startsWith('ERROR:')){
+    toast(reply?.replace('ERROR:','')||'Failed to generate quests','error');return;
+  }
+  try{
+    const clean=reply.replace(/```json|```/g,'').replace(/[\u0000-\u001F\u007F-\u009F]/g,' ').trim();
+    const start=clean.indexOf('['),end=clean.lastIndexOf(']');
+    if(start===-1||end===-1) throw new Error('No JSON array found');
+    const quests=JSON.parse(clean.slice(start,end+1));
+    if(!Array.isArray(quests)||!quests.length) throw new Error('Empty quest array');
+    // validate each quest
+    const valid=quests.filter(q=>q.title&&q.type&&['daily','weekly','main','emergency'].includes(q.type)).map(q=>({
+      id:q.id||'aq_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+      title:String(q.title).slice(0,80),
+      desc:String(q.desc||'').slice(0,200),
+      type:q.type,
+      xp:Math.max(10,Math.min(5000,parseInt(q.xp)||100)),
+      stat:['int','str','end','agi','per','luk'].includes(q.stat)?q.stat:null,
+      statVal:Math.max(1,Math.min(20,parseInt(q.statVal)||1)),
+      target:Math.max(1,parseInt(q.target)||1),
+      cur:0,pct:0,done:false
+    }));
+    if(!valid.length) throw new Error('No valid quests');
+    const keep=(S.quests||[]).filter(q=>q.type!=='daily'&&!q.done);
+    S.quests=[...keep,...valid];
+    save(); renderQuests(); renderDash(); renderHUD();
+    toast(`⚡ ${valid.length} quests generated by The System!`,'success');
+    sysAlert(`${valid.length} new quests issued. The System demands completion.`);
+  }catch(e){
+    toast('Failed to parse AI quests. Try generating again.','error');
+    console.error('Quest parse error:',e,'\nRaw reply:',reply);
+  }
+}
+async function genAIWorkout(){
+  if(!apiKey){toast('Add your OpenAI API key in Settings first!','warning');navTo('settings');return;}
+  toast('⚡ Generating workout...','info');
+  const prompt=`Generate a workout plan for Hunter level ${S.level}, STR:${S.stats.str}, END:${S.stats.end}.
+Return ONLY valid JSON, no markdown:
+{"type":"Push","exercises":[{"name":"Exercise","cat":"Chest","sets":3,"reps":10}],"notes":"Motivational tip"}
+Generate 5-8 exercises. Suitable for building strength and endurance. Make it challenging.`;
+  const reply=await callAI([{role:'user',content:prompt}]);
+  if(!reply||reply.startsWith('ERROR:')){toast(reply?.replace('ERROR:','')||'Failed to generate','error');return;}
+  try{
+    const clean=reply.replace(/```json|```/g,'').trim();
+    const s=clean.indexOf('{'),e2=clean.lastIndexOf('}');
+    const wo=JSON.parse(clean.slice(s,e2+1));
+    const typeMap={push:'push',pull:'pull',leg:'legs',legs:'legs',upper:'upper',lower:'lower',full:'full',cardio:'cardio'};
+    const wt=Object.entries(typeMap).find(([k])=>wo.type?.toLowerCase().includes(k))?.[1]||'full';
+    const sel=document.getElementById('wo-type');
+    if(sel) sel.value=wt;
+    exList=(wo.exercises||[]).filter(e=>e.name).map(e=>({name:String(e.name),cat:e.cat||'',sets:parseInt(e.sets)||3,reps:parseInt(e.reps)||10}));
+    const notesEl=document.getElementById('wo-notes');
+    if(notesEl) notesEl.value=wo.notes||'';
+    renderExList();
+    navTo('workout');
+    toast('⚡ AI Workout generated!','success');
+  }catch(e){toast('Failed to parse AI workout. Try again.','error');console.error(e);}
+}
+
+/* ============================================================
+   SYSTEM ALERTS
+============================================================ */
+function sysAlert(msg){
+  const el=document.getElementById('sys-alerts');
+  if(!el) return;
+  const d=document.createElement('div');
+  d.className='sq mb1';
+  d.textContent=`"${msg}"`;
+  el.insertBefore(d,el.firstChild);
+  while(el.children.length>4) el.removeChild(el.lastChild);
+}
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+function showTab(id){navTo(id);}
+function navTo(id){
+  document.querySelectorAll('.tab-view').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const tab=document.getElementById(`tab-${id}`);
+  if(tab) tab.classList.add('active');
+  const navItem=document.querySelector(`[data-tab="${id}"]`);
+  if(navItem) navItem.classList.add('active');
+  if(id==='inventory') renderInventory();
+  if(id==='stats') renderStats();
+  if(id==='settings') renderSettings();
+  if(id==='ai'){
+    renderAITab();
+    document.getElementById('no-key-warn').style.display=apiKey?'none':'block';
+  }
+  if(id==='neet') renderPomoDisplay();
+  closeNav();
+  window.scrollTo(0,0);
+}
+function renderAITab(){
+  const area=document.getElementById('ai-chat-area');
+  if(!area) return;
+  if(!area.children.length) initChatWelcome();
+}
+function toggleNav(){
+  const nav=document.getElementById('nav');
+  const ov=document.getElementById('nav-overlay');
+  const ham=document.getElementById('hamburger');
+  nav.classList.toggle('open');
+  ov.classList.toggle('show');
+  ham.classList.toggle('open');
+}
+function closeNav(){
+  const nav=document.getElementById('nav');
+  const ov=document.getElementById('nav-overlay');
+  const ham=document.getElementById('hamburger');
+  nav.classList.remove('open');
+  ov.classList.remove('show');
+  ham.classList.remove('open');
+}
+
+/* ============================================================
+   GENERIC MODAL
+============================================================ */
+function openGModal(html){
+  document.getElementById('gmodal-body').innerHTML=html;
+  document.getElementById('gmodal').style.display='flex';
+}
+function closeGModal(){
+  document.getElementById('gmodal').style.display='none';
+  document.getElementById('gmodal-body').innerHTML='';
+  allocTmp=null;
+}
+function gmodalClickOut(e){if(e.target.id==='gmodal') closeGModal();}
+
+/* ============================================================
+   ONBOARDING
+============================================================ */
+let obStep=1;
+function openOnboard(){
+  // build class grid
+  const cg=document.getElementById('class-grid');
+  if(cg) cg.innerHTML=CLASSES.map(c=>`<div class="class-opt" onclick="selectClass('${c.id}',this)" data-class="${c.id}"><div class="class-opt-name">${c.icon} ${c.name}</div><div class="class-opt-desc">${c.desc}</div></div>`).join('');
+  // build dots
+  const dots=document.getElementById('ob-dots');
+  if(dots) dots.innerHTML=Array.from({length:5},(_,i)=>`<div class="ob-dot ${i===0?'cur':''}" id="obd-${i+1}"></div>`).join('');
+  document.getElementById('ob-modal').style.display='flex';
+}
+function selectClass(id,el){
+  document.querySelectorAll('.class-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  obSelClass=id;
+}
+function obNext(step){
+  if(step===1){
+    const nm=document.getElementById('ob-name')?.value?.trim();
+    if(!nm){toast('Enter your name, Hunter!','error');return;}
+    S.name=nm;
+  }
+  if(step===2){
+    if(!obSelClass){toast('Choose your class!','error');return;}
+    S.class=obSelClass;
+    const cls=CLASSES.find(c=>c.id===obSelClass);
+    if(cls) Object.entries(cls.bonus||{}).forEach(([k,v])=>S.stats[k]=(S.stats[k]||10)+v);
+  }
+  if(step===3){
+    S.cfg.exam=document.getElementById('ob-exam')?.value||'2026-05-03';
+    S.cfg.studyMins=parseInt(document.getElementById('ob-goal')?.value)||360;
+  }
+  document.getElementById(`obs-${step}`)?.classList.remove('active');
+  document.getElementById(`obs-${step+1}`)?.classList.add('active');
+  document.getElementById(`obd-${step}`)?.classList.replace('cur','done');
+  const nd=document.getElementById(`obd-${step+1}`);
+  if(nd) nd.classList.add('cur');
+  obStep=step+1;
+  if(step+1===5){
+    document.getElementById('ob-summary').textContent=`Hunter ${S.name} — ${CLASSES.find(c=>c.id===S.class)?.name||S.class}. NEET target: ${S.cfg.exam}. Daily goal: ${Math.floor(S.cfg.studyMins/60)}h. The System is ready.`;
+  }
+}
+function obSaveKey(){
+  const k=document.getElementById('ob-key')?.value?.trim();
+  if(k){apiKey=k;localStorage.setItem('arise3_key',k);}
+  obNext(4);
+}
+function completeOnboarding(){
+  if(!S.titles) S.titles=['awakened'];
+  if(!S.titles.includes('awakened')) S.titles.push('awakened');
+  S.eqTitle='awakened';
+  S.statPts=5;
+  save();
+  document.getElementById('ob-modal').style.display='none';
+  renderAll();
+  setTimeout(()=>{showLU(1);toast(`⚡ Welcome, ${S.name}! Your legend begins now.`,'success');},800);
+  if(apiKey) setTimeout(()=>generateAIQuests(),4000);
+}
+
+/* ============================================================
+   TOAST
+============================================================ */
+function toast(msg,type='info',dur=4000){
+  const wrap=document.getElementById('toast-wrap');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.textContent=msg;
+  t.onclick=()=>{t.classList.add('exiting');setTimeout(()=>t.remove(),300);};
+  wrap.appendChild(t);
+  if(wrap.children.length>5) wrap.firstChild.remove();
+  setTimeout(()=>{if(t.parentNode){t.classList.add('exiting');setTimeout(()=>t.remove(),300);}},dur);
+}
+
+/* ============================================================
+   CANVAS
+============================================================ */
+function initCanvas(){
+  const cv=document.getElementById('bg-canvas');
+  const ctx=cv.getContext('2d');
+  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight;}
+  resize(); window.addEventListener('resize',resize);
+  const pts=Array.from({length:60},()=>({
+    x:Math.random()*cv.width,y:Math.random()*cv.height,
+    vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,
+    r:Math.random()*1.8+.5,
+    col:['rgba(0,212,255,','rgba(155,93,229,','rgba(255,214,10,'][Math.floor(Math.random()*3)],
+    a:Math.random()*.5+.1
+  }));
+  // hex grid
+  function hexGrid(){
+    const S2=36;
+    for(let col=-1;col<cv.width/S2/1.73+2;col++) for(let row=-1;row<cv.height/S2+2;row++){
+      ctx.beginPath();
+      for(let i=0;i<6;i++) ctx.lineTo(col*S2*1.73+(row%2)*S2*.87+S2*.87*Math.cos(Math.PI/3*i-Math.PI/6),row*S2*1.5+S2*.87*Math.sin(Math.PI/3*i-Math.PI/6));
+      ctx.closePath();
+      ctx.strokeStyle='rgba(0,212,255,0.03)';ctx.lineWidth=.5;ctx.stroke();
+    }
+  }
+  function frame(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    hexGrid();
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>cv.width)p.vx*=-1;
+      if(p.y<0||p.y>cv.height)p.vy*=-1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.col+p.a+')';ctx.fill();
+    });
+    for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){
+      const d=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);
+      if(d<90){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(0,212,255,${.05*(1-d/90)})`;ctx.lineWidth=.5;ctx.stroke();}
+    }
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+/* ============================================================
+   HELPERS
+============================================================ */
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ============================================================
+   STYLES INJECTION
+============================================================ */
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`@keyframes part-fly{from{transform:translateY(0)scale(1);opacity:1;}to{transform:translateY(-150px) translateX(${Math.random()>0.5?'':'-'}80px) scale(0);opacity:0;}} .mt1{margin-top:6px;} .mt2{margin-top:12px;}`;
+  document.head.appendChild(style);
+})();
+
+/* ============================================================
+   BOOT
+============================================================ */
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
+else boot();
+</script>
+</body>
+</html>
