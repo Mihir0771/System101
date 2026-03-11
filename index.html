@@ -269,7 +269,7 @@ input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;}
 /* ============================================================
    AI CHAT
 ============================================================ */
-#ai-chat-area{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:rgba(0,0,0,.4);border-radius:var(--radius-sm);border:1px solid var(--b20);}
+#ai-chat-area{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:rgba(0,0,0,.4);border-radius:var(--radius-sm);border:1px solid var(--b20);}
 .chat-msg{max-width:88%;padding:12px 15px;border-radius:10px;font-size:13px;line-height:1.65;animation:msg-in .3s ease;}
 @keyframes msg-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 .msg-sys{align-self:flex-start;background:var(--p10);border:1px solid var(--p20);border-radius:2px 10px 10px 10px;}
@@ -856,13 +856,18 @@ input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;}
     <button class="btn btn-red btn-sm" onclick="clearChat()">🗑 CLEAR CHAT</button>
   </div>
   <div id="no-key-warn" class="alert alert-warn mb2" style="display:none;">
-    ⚠️ No OpenAI API key set. Go to <strong>Settings → AI Config</strong> to add your key and unlock the System AI.
+    ⚠️ No API key set. Go to <strong>Settings → AI Config</strong> to add your free Gemini key (aistudio.google.com) or Groq key (console.groq.com) to unlock the System AI.
   </div>
-  <div class="g2" style="height:calc(100vh - 200px);min-height:500px;">
-    <div style="display:flex;flex-direction:column;height:100%;">
-      <div class="panel p-purple" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+  <div id="ai-model-bar" style="display:flex;align-items:center;gap:10px;background:rgba(155,93,229,.08);border:1px solid var(--p20);border-radius:8px;padding:8px 14px;margin-bottom:12px;font-family:var(--fm);font-size:11px;flex-wrap:wrap;">
+    <span style="color:var(--dim);">ENGINE:</span>
+    <span id="ai-model-label" style="color:var(--purple);">⚡ Gemini 2.5 Flash → 2.5 Thinking → 2.5 Flash 8B → 2.5 Lite → 1.0 Pro → Groq</span>
+    <span style="margin-left:auto;color:var(--dim);">Last used: <span id="ai-last-model-lbl" style="color:var(--gold);">—</span></span>
+  </div>
+  <div class="g2" style="min-height:520px;align-items:stretch;">
+    <div style="display:flex;flex-direction:column;min-height:520px;">
+      <div class="panel p-purple" style="display:flex;flex-direction:column;flex:1;">
         <div class="ptitle purple">💬 SYSTEM COMMUNICATION</div>
-        <div id="ai-chat-area"></div>
+        <div id="ai-chat-area" style="flex:1;min-height:300px;max-height:60vh;overflow-y:auto;"></div>
         <div class="chat-row">
           <input type="text" class="fi" id="ai-input" placeholder="Speak to The System..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}">
           <button class="btn btn-purple" onclick="sendMsg()" style="flex-shrink:0;">SEND ⚡</button>
@@ -938,25 +943,36 @@ input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;}
     </div>
     <div>
       <div class="panel mb2 p-purple">
-        <div class="ptitle purple">🤖 OPENAI API CONFIG</div>
+        <div class="ptitle purple">🤖 AI CONFIG — MULTI-MODEL ENGINE</div>
         <div class="alert alert-info mb2" style="font-size:12px;">
-          Get your key at <strong>platform.openai.com/api-keys</strong>. Your key is stored only in your browser and never sent anywhere except directly to OpenAI.
+          Get your <strong>free</strong> Gemini key at <strong>aistudio.google.com/app/apikey</strong>. Stored only in your browser.
         </div>
         <div class="fg">
-          <label class="fl">OPENAI API KEY</label>
+          <label class="fl">GEMINI API KEY (Primary)</label>
           <div style="position:relative;">
-            <input type="password" class="fi mono" id="cfg-key" placeholder="sk-...">
+            <input type="password" class="fi mono" id="cfg-key" placeholder="AIzaSy...">
             <button onclick="toggleKeyVis()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);font-size:16px;cursor:pointer;" id="eye-btn">👁</button>
           </div>
         </div>
         <div class="fg">
-          <label class="fl">MODEL</label>
+          <label class="fl">PRIMARY MODEL</label>
           <select class="fi" id="cfg-model">
-            <option value="gpt-4o">GPT-4o (Recommended)</option>
-            <option value="gpt-4o-mini">GPT-4o Mini (Faster/Cheaper)</option>
-            <option value="gpt-4-turbo">GPT-4 Turbo</option>
-            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Budget)</option>
+            <option value="gemini-2.5-flash">⚡ Gemini 2.5 Flash (Recommended)</option>
+            <option value="gemini-2.5-flash-thinking">🔥 Gemini 2.5 Flash Thinking</option>
+            <option value="gemini-2.5-flash-8b">💨 Gemini 2.5 Flash 8B (Fastest)</option>
+            <option value="gemini-2.5-flash-lite">🌟 Gemini 2.5 Flash Lite</option>
+            <option value="gemini-1.0-pro">🧠 Gemini 1.0 Pro</option>
           </select>
+        </div>
+        <div class="alert alert-info mb2" style="font-size:11px;margin-top:-4px;">
+          ⚡ Auto-fallback: If rate limited, System auto-tries next model. <strong>Groq key below = ultimate backup.</strong>
+        </div>
+        <div class="fg">
+          <label class="fl">🦙 GROQ API KEY (Free Backup — LLaMA 3.3 70B)</label>
+          <input type="password" class="fi mono" id="cfg-groq" placeholder="gsk_... (optional, from console.groq.com)">
+        </div>
+        <div class="alert" style="background:rgba(6,255,165,.05);border:1px solid rgba(6,255,165,.2);border-radius:8px;padding:10px;font-size:11px;color:var(--green);margin-bottom:14px;">
+          🛡️ <strong>Rate Limit Shield Active:</strong> Gemini 2.5 Flash → 2.5 Thinking → 2.5 Flash 8B → 2.5 Lite → 1.0 Pro → Groq LLaMA
         </div>
         <div class="fg">
           <label class="fl">AI PERSONALITY</label>
@@ -977,7 +993,11 @@ input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;}
           <div>System: <span class="txt-blue">ARISE v3.0 — GOAT Edition</span></div>
           <div>Protocol: <span class="txt-blue">Hunter Framework Active</span></div>
           <div>Storage: <span class="txt-blue">LocalStorage (Browser)</span></div>
-          <div>AI Engine: <span class="txt-blue">OpenAI GPT</span></div>
+          <div>Primary AI: <span class="txt-blue" id="info-model">Gemini 2.5 Flash</span></div>
+          <div>Fallbacks: <span class="txt-purple">5 Gemini + Groq LLaMA</span></div>
+          <div>Last Response: <span class="txt-gold" id="info-last-model">—</span></div>
+          <div>Gemini Key: <span id="info-gkey" class="txt-green">⬤ SET</span></div>
+          <div>Groq Key: <span id="info-groq-key" class="txt-dim">○ NOT SET</span></div>
           <div>Status: <span class="txt-green">⬤ OPERATIONAL</span></div>
         </div>
       </div>
@@ -1068,9 +1088,10 @@ input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;}
       </div>
       <div class="ob-step" id="obs-4">
         <div class="modal-title">🤖 AI SYSTEM KEY</div>
-        <div class="modal-sub">Add your OpenAI key for the full AI mentor experience.</div>
-        <div class="alert alert-info mb2" style="font-size:12px;">Optional — add/change later in Settings. Get key at <strong>platform.openai.com</strong></div>
-        <div class="fg"><label class="fl">OPENAI API KEY</label><input type="password" class="fi mono" id="ob-key" placeholder="sk-... (optional)"></div>
+        <div class="modal-sub">Add your free AI key for the full System AI experience.</div>
+        <div class="alert alert-info mb2" style="font-size:12px;">Optional — skip and add later in Settings.<br>🔑 Gemini (free): <strong>aistudio.google.com/app/apikey</strong><br>🦙 Groq backup (free): <strong>console.groq.com</strong></div>
+        <div class="fg"><label class="fl">GEMINI API KEY (Recommended)</label><input type="password" class="fi mono" id="ob-key" placeholder="AIzaSy... (optional)"></div>
+        <div class="fg"><label class="fl">GROQ API KEY (Optional Backup)</label><input type="password" class="fi mono" id="ob-groq-key" placeholder="gsk_... (optional, from console.groq.com)"></div>
         <div class="flex gap2">
           <button class="btn btn-blue btn-full" onclick="obNext(4)">SKIP →</button>
           <button class="btn btn-purple btn-full" onclick="obSaveKey()">SAVE & CONTINUE ⚡</button>
@@ -1164,7 +1185,7 @@ const ACHIEVEMENTS = [
   {id:'wo50',icon:'⚔️',name:'Iron Body',desc:'50 workouts',fn:s=>s.life.woDone>=50},
   {id:'study100',icon:'📚',name:'Scholar',desc:'100 study hours',fn:s=>s.life.studyMins>=6000},
   {id:'study500',icon:'🌌',name:'Knowledge Seeker',desc:'500 study hours',fn:s=>s.life.studyMins>=30000},
-  {id:'mock10',icon:'📝',name:'Test Veteran',desc:'10 mock tests',fn:s=>s.mocks.length>=10},
+  {id:'mock10',icon:'📝',name:'Test Veteran',desc:'10 mock tests',fn:s=>(s.mocks||[]).length>=10},
   {id:'q50',icon:'🗺️',name:'Quest Master',desc:'50 quests done',fn:s=>s.life.qDone>=50},
 ];
 
@@ -1187,6 +1208,67 @@ const TITLES = [
   {id:'shadow_monarch',icon:'👑',name:'Shadow Monarch',bonus:'+20 all stats',xpBonus:100},
 ];
 
+/* ============================================================
+   SOLO LEVELING PERMANENT DAILY QUESTS
+============================================================ */
+const PERMANENT_DAILY_QUESTS = [
+  {
+    id:'sl_pushups',
+    title:'100 Push-Ups',
+    desc:'⚡ SYSTEM TRIAL — The iron law of the Hunter. 100 push-ups, no rest, no excuses. Sung Jin-Woo started here. So do you.',
+    type:'daily', xp:150, stat:'str', statVal:2, target:100, permanent:true,
+    icon:'💪'
+  },
+  {
+    id:'sl_situps',
+    title:'100 Sit-Ups',
+    desc:'⚡ SYSTEM TRIAL — Core of steel, will of iron. 100 sit-ups. Every rep forges the hunter you are becoming.',
+    type:'daily', xp:150, stat:'str', statVal:2, target:100, permanent:true,
+    icon:'🔥'
+  },
+  {
+    id:'sl_run',
+    title:'1 KM Run',
+    desc:'⚡ SYSTEM TRIAL — Stamina is survival. Run 1 kilometer without stopping. The weak stop. Hunters do not.',
+    type:'daily', xp:120, stat:'end', statVal:2, target:1, permanent:true,
+    icon:'🏃'
+  },
+  {
+    id:'sl_100q',
+    title:'100 Questions Practice',
+    desc:'📚 SCHOLAR\'S TRIAL — Solve 100 NEET practice questions today. Intelligence is the ultimate weapon. Forge it daily.',
+    type:'daily', xp:300, stat:'int', statVal:3, target:100, permanent:true,
+    icon:'🧬'
+  },
+  {
+    id:'sl_meditation',
+    title:'20 Min Meditation',
+    desc:'🌌 MIND TRIAL — 20 minutes of focused meditation. A calm mind cuts through exam pressure like a blade.',
+    type:'daily', xp:100, stat:'per', statVal:1, target:20, permanent:true,
+    icon:'🧘'
+  },
+];
+
+function ensurePermanentDailyQuests(){
+  if(!S.quests) S.quests=[];
+  for(const pq of PERMANENT_DAILY_QUESTS){
+    if(!S.quests.find(q=>q.id===pq.id)){
+      S.quests.push({...pq, cur:0, pct:0, done:false});
+    }
+  }
+}
+
+/* ============================================================
+   GEMINI MODELS (fallback chain)
+============================================================ */
+const GEMINI_MODELS=[
+  {id:'gemini-2.5-flash',          name:'Gemini 2.5 Flash'},
+  {id:'gemini-2.5-flash-thinking',          name:'Gemini 2.5 Flash Thinking'},
+  {id:'gemini-2.5-flash-8b',       name:'Gemini 2.5 Flash 8B'},
+  {id:'gemini-2.5-flash-lite',     name:'Gemini 2.5 Flash Lite'},
+  {id:'gemini-1.0-pro',            name:'Gemini 1.0 Pro'},
+];
+
 const DEFAULT = () => ({
   name:'',class:'Shadow',rank:'E',level:1,xp:0,streak:0,
   lastLogin:null,statPts:5,
@@ -1196,8 +1278,8 @@ const DEFAULT = () => ({
   neet:{physics:Array(24).fill(0),chemistry:Array(30).fill(0),biology:Array(38).fill(0)},
   workouts:[],studySess:[],
   life:{qDone:0,totalXP:0,studyMins:0,woDone:0},
-  wStreak:0,pomoDone:0,
-  cfg:{exam:'2026-05-03',studyMins:360,wodpw:5,persona:'system',model:'gpt-4o'}
+  wStreak:0,
+  cfg:{exam:'2026-05-03',studyMins:360,wodpw:5,persona:'system'}
 });
 
 /* ============================================================
@@ -1205,6 +1287,9 @@ const DEFAULT = () => ({
 ============================================================ */
 let S = {};
 let apiKey = '';
+let groqKey = '';
+let preferredModel = 'gemini-2.5-flash';
+let lastUsedModel = '';
 let chatHist = [];
 let exList = [];
 let timerSec = 25*60;
@@ -1244,6 +1329,10 @@ function loadState(){
     S=raw?mergeDefault(JSON.parse(raw)):DEFAULT();
     const k=localStorage.getItem('arise3_key');
     if(k) apiKey=k;
+    const gk=localStorage.getItem('arise3_groq_key');
+    if(gk) groqKey=gk;
+    const pm=localStorage.getItem('arise3_model');
+    if(pm) preferredModel=pm;
     const ch=localStorage.getItem('arise3_chat');
     if(ch) chatHist=JSON.parse(ch);
   }catch(e){S=DEFAULT();}
@@ -1254,6 +1343,8 @@ function mergeDefault(saved){
   merged.stats={...def.stats,...(saved.stats||{})};
   merged.life={...def.life,...(saved.life||{})};
   merged.cfg={...def.cfg,...(saved.cfg||{})};
+  // Remove stale model key from old saves
+  delete merged.cfg.model;
   merged.neet={
     physics: Array(24).fill(0).map((_,i)=>(saved.neet?.physics?.[i])||0),
     chemistry: Array(30).fill(0).map((_,i)=>(saved.neet?.chemistry?.[i])||0),
@@ -1272,6 +1363,8 @@ function save(){
   try{
     localStorage.setItem('arise3',JSON.stringify(S));
     if(apiKey) localStorage.setItem('arise3_key',apiKey);
+    if(groqKey) localStorage.setItem('arise3_groq_key',groqKey);
+    localStorage.setItem('arise3_model',preferredModel);
     localStorage.setItem('arise3_chat',JSON.stringify(chatHist.slice(-60)));
   }catch(e){console.error('Save failed:',e);}
 }
@@ -1281,15 +1374,22 @@ function save(){
 ============================================================ */
 function checkDailyLogin(){
   const today=new Date().toDateString();
-  if(S.lastLogin===today) return;
-  const yesterday=new Date(Date.now()-86400000).toDateString();
-  if(S.lastLogin===yesterday) S.streak=(S.streak||0)+1;
-  else if(S.lastLogin && S.lastLogin!==today) S.streak=1;
-  else if(!S.lastLogin) S.streak=1;
-  S.lastLogin=today;
-  // reset daily quests
-  S.quests=S.quests.filter(q=>q.type!=='daily'||q.done);
-  save();
+  const isNewDay=S.lastLogin!==today;
+  if(isNewDay){
+    const yesterday=new Date(Date.now()-86400000).toDateString();
+    if(S.lastLogin===yesterday) S.streak=(S.streak||0)+1;
+    else if(S.lastLogin && S.lastLogin!==today) S.streak=1;
+    else if(!S.lastLogin) S.streak=1;
+    S.lastLogin=today;
+    // Filter daily quests: keep non-daily, keep permanent (and reset them), remove done non-permanent daily
+    S.quests=(S.quests||[]).filter(q=>{
+      if(q.type!=='daily') return true;
+      if(q.permanent){q.done=false;q.cur=0;q.pct=0;return true;}
+      return false; // remove non-permanent dailies each day
+    });
+    save();
+  }
+  ensurePermanentDailyQuests();
 }
 
 /* ============================================================
@@ -1362,7 +1462,7 @@ function renderDash(){
   document.getElementById('dash-aq').innerHTML=aq.length===0?
     '<div class="txt-dim fm" style="font-size:12px;padding:8px 0;">No active quests. Generate some with AI!</div>':
     aq.map(q=>`<div class="qcard" style="padding:10px 12px;margin-bottom:7px;" onclick="navTo('quests')">
-      <div class="flex ai-c gap1 mb1"><span class="qtag qt-${q.type||'daily'}">${(q.type||'daily').toUpperCase()}</span><span class="fd" style="font-size:11px;color:var(--white)">${q.title}</span></div>
+      <div class="flex ai-c gap1 mb1"><span class="qtag qt-${q.type||'daily'}">${(q.type||'daily').toUpperCase()}</span><span class="fd" style="font-size:11px;color:var(--white)">${esc(q.title)}</span></div>
       <div class="q-prog-rail"><div class="q-prog-fill" style="width:${q.pct||0}%"></div></div></div>`).join('');
   // workout
   document.getElementById('d-wo-stk').textContent=(S.wStreak||0)+'🔥';
@@ -1441,9 +1541,14 @@ function renderQuests(){
 }
 function qCard(q){
   const pct=q.target>1?Math.min(100,Math.floor(((q.cur||0)/q.target)*100)):q.done?100:0;
-  return `<div class="qcard ${q.done?'done':''} ${q.type==='emergency'?'emergency':''}" id="qc-${q.id}">
-    <div class="qtag qt-${q.type}">${q.type.toUpperCase()}</div>
-    <div class="q-title">${esc(q.title)}</div>
+  const safeType=['daily','weekly','main','emergency','ai'].includes(q.type)?q.type:'daily';
+  const isPermanent=!!q.permanent;
+  const slBadge=isPermanent?`<span style="background:linear-gradient(90deg,rgba(255,214,10,.15),rgba(155,93,229,.15));border:1px solid rgba(255,214,10,.4);color:var(--gold);font-family:var(--fd);font-size:7px;padding:2px 7px;border-radius:3px;letter-spacing:1.5px;margin-left:6px;">⚡ SOLO LEVELING TRIAL</span>`:'';
+  return `<div class="qcard ${q.done?'done':''} ${safeType==='emergency'?'emergency':''} ${isPermanent?'sl-permanent':''}" id="qc-${q.id}" style="${isPermanent&&!q.done?'border-color:rgba(255,214,10,.25);':''}" >
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
+      <div class="qtag qt-${safeType}">${safeType.toUpperCase()}</div>${slBadge}
+    </div>
+    <div class="q-title">${q.icon?q.icon+' ':''} ${esc(q.title)}</div>
     <div class="q-desc">${esc(q.desc)}</div>
     <div class="q-rewards">
       <span class="qr xp">⚡ ${q.xp||50} XP</span>
@@ -1454,7 +1559,7 @@ function qCard(q){
     ${!q.done?`<div class="q-acts">
       ${q.target>1?`<input type="number" class="ex-inp" min="0" max="${q.target}" value="${q.cur||0}" style="width:60px;" onchange="updateQProg('${q.id}',+this.value)">`:''}
       <button class="btn btn-green btn-sm" onclick="doneQuest('${q.id}')">✓ COMPLETE</button>
-      <button class="btn btn-red btn-sm" onclick="dropQuest('${q.id}')">✗</button>
+      ${!isPermanent?`<button class="btn btn-red btn-sm" onclick="dropQuest('${q.id}')">✗</button>`:'<span style="font-size:9px;color:var(--muted);font-family:var(--fm);">🔒 DAILY</span>'}
     </div>`:''}
   </div>`;
 }
@@ -1605,13 +1710,13 @@ function updateStudyDisplay(){
 }
 function renderMocks(){
   document.getElementById('mt-cnt').textContent=(S.mocks||[]).length;
-  if(S.mocks.length){
+  if((S.mocks||[]).length){
     const sc=S.mocks.map(t=>t.score);
     document.getElementById('mt-avg').textContent=Math.round(sc.reduce((a,b)=>a+b,0)/sc.length);
     document.getElementById('mt-best').textContent=Math.max(...sc);
   }
   const ml=document.getElementById('mt-list');
-  if(!S.mocks.length){ml.innerHTML='<div class="txt-dim fm" style="font-size:12px;">No tests logged yet.</div>';return;}
+  if(!(S.mocks||[]).length){ml.innerHTML='<div class="txt-dim fm" style="font-size:12px;">No tests logged yet.</div>';return;}
   ml.innerHTML=S.mocks.slice(-10).reverse().map(t=>`
     <div class="flex jc-b ai-c" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">
       <div><div class="fd" style="font-size:10px;color:var(--white)">${t.date}</div><div class="fm txt-dim" style="font-size:9px;">${esc(t.notes||'—')}</div></div>
@@ -1708,8 +1813,10 @@ function tickTimer(){
 function resetTimer(){
   clearInterval(timerTick); timerOn=false; timerStart=null;
   timerSec=timerBreak?5*60:25*60;
-  document.getElementById('timer-play-btn').textContent='▶ START';
-  document.getElementById('timer-disp').classList.remove('urgent');
+  const btn=document.getElementById('timer-play-btn');
+  const disp=document.getElementById('timer-disp');
+  if(btn) btn.textContent='▶ START';
+  if(disp){ disp.classList.remove('urgent'); disp.className=`timer-big${timerBreak?' break':''}`; }
   updateTimerDisp();
 }
 function toggleBreak(){
@@ -1854,7 +1961,7 @@ function renderWeeklySplit(){
 function renderInventory(){
   // titles
   const tl=document.getElementById('titles-list');
-  tl.innerHTML=TITLES.map(t=>{
+  if(tl) tl.innerHTML=TITLES.map(t=>{
     const owned=(S.titles||[]).includes(t.id);
     return `<div class="title-card ${owned?'owned':''}">
       <div class="title-ico">${t.icon}</div>
@@ -1863,7 +1970,7 @@ function renderInventory(){
     </div>`;}).join('');
   // skills
   const sk=document.getElementById('skill-tree-el');
-  sk.innerHTML=SKILLS.map(s=>{
+  if(sk) sk.innerHTML=SKILLS.map(s=>{
     const owned=(S.skills||[]).includes(s.id);
     const can=S.level>=s.req&&!owned;
     return `<div class="skill-card ${owned?'unlocked':can?'can-unlock':''}">
@@ -1873,10 +1980,10 @@ function renderInventory(){
       <div class="sk-req">Lv.${s.req}</div>
       ${can?`<button class="btn btn-purple btn-sm btn-full mt1" onclick="unlockSkill('${s.id}')">UNLOCK</button>`:''}
     </div>`;}).join('');
-  // achievements
+  // achievements - use safeFn to prevent any single fn crash from breaking the whole render
   const ag=document.getElementById('ach-grid');
-  ag.innerHTML=ACHIEVEMENTS.map(a=>{
-    const done=(S.achiev||[]).includes(a.id)||a.fn(S);
+  if(ag) ag.innerHTML=ACHIEVEMENTS.map(a=>{
+    const done=(S.achiev||[]).includes(a.id)||safeFn(a.fn,S);
     return `<div class="ach-card ${done?'unlocked':''}"><div class="ach-icon">${a.icon}</div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>`;}).join('');
 }
 function equipTitle(id){
@@ -1896,33 +2003,49 @@ function unlockSkill(id){
 }
 
 /* ============================================================
-   ACHIEVEMENTS CHECK
+   ACHIEVEMENTS CHECK — re-entry guard prevents infinite recursion
+   (gainXP → checkAchiev → gainXP(silent) → checkAchiev → ...)
 ============================================================ */
+let _achivLock = false;
 function checkAchiev(){
-  ACHIEVEMENTS.forEach(a=>{
-    if(!(S.achiev||[]).includes(a.id)&&a.fn(S)){
+  if(_achivLock) return;
+  _achivLock = true;
+  try {
+    const toUnlock = ACHIEVEMENTS.filter(a=>!(S.achiev||[]).includes(a.id) && safeFn(a.fn, S));
+    toUnlock.forEach((a,idx)=>{
       if(!S.achiev) S.achiev=[];
       S.achiev.push(a.id);
-      setTimeout(()=>toast(`🏆 Achievement: ${a.name}!`,'warning'),400);
-      gainXP(200,true);
+      const delay = 400 + idx * 600;
+      setTimeout(()=>toast(`🏆 Achievement Unlocked: ${a.name}!`,'warning',5000), delay);
+    });
+    if(toUnlock.length > 0){
+      // Award XP for all unlocks at once, outside the lock, after releasing
+      const xpAmt = toUnlock.length * 200;
+      setTimeout(()=>{ gainXP(xpAmt, true); }, 200);
     }
-  });
-  checkTitles();
+    checkTitles();
+  } finally {
+    _achivLock = false;
+  }
+}
+function safeFn(fn, s){
+  try { return fn(s); } catch(e){ return false; }
 }
 function checkTitles(){
-  if((S.life.studyMins||0)>=600&&!(S.titles||[]).includes('studious')){
+  if(!S.titles) S.titles=['awakened'];
+  if((S.life.studyMins||0)>=600&&!S.titles.includes('studious')){
     S.titles.push('studious');toast('👑 Title Unlocked: The Scholar!','success');
   }
-  if((S.life.woDone||0)>=10&&!(S.titles||[]).includes('ironclad')){
+  if((S.life.woDone||0)>=10&&!S.titles.includes('ironclad')){
     S.titles.push('ironclad');toast('👑 Title Unlocked: The Ironclad!','success');
   }
-  if((S.streak||0)>=7&&!(S.titles||[]).includes('relentless')){
+  if((S.streak||0)>=7&&!S.titles.includes('relentless')){
     S.titles.push('relentless');toast('👑 Title Unlocked: The Relentless!','success');
   }
-  if(S.level>=20&&!(S.titles||[]).includes('s_aspirant')){
+  if(S.level>=20&&!S.titles.includes('s_aspirant')){
     S.titles.push('s_aspirant');toast('👑 Title Unlocked: S-Rank Aspirant!','success');
   }
-  if(neetOverall(S)>=50&&!(S.titles||[]).includes('neet_hunter')){
+  if(neetOverall(S)>=50&&!S.titles.includes('neet_hunter')){
     S.titles.push('neet_hunter');toast('👑 Title Unlocked: NEET Hunter!','success');
   }
 }
@@ -1937,8 +2060,10 @@ function renderSettings(){
   const cfgs=document.getElementById('cfg-study'); if(cfgs) cfgs.value=S.cfg.studyMins||360;
   const cfgw=document.getElementById('cfg-wodpw'); if(cfgw) cfgw.value=S.cfg.wodpw||5;
   const cfgk=document.getElementById('cfg-key'); if(cfgk) cfgk.value=apiKey||'';
-  const cfgm=document.getElementById('cfg-model'); if(cfgm) cfgm.value=S.cfg.model||'gpt-4o';
+  const cfggk=document.getElementById('cfg-groq'); if(cfggk) cfggk.value=groqKey||'';
+  const cfgm=document.getElementById('cfg-model'); if(cfgm) cfgm.value=preferredModel||'gemini-2.5-flash';
   const cfgp=document.getElementById('cfg-persona'); if(cfgp) cfgp.value=S.cfg.persona||'system';
+  updateInfoPanel();
 }
 function saveProfile(){
   S.name=document.getElementById('cfg-name')?.value?.trim()||'Hunter';
@@ -1949,23 +2074,50 @@ function saveProfile(){
   save(); renderAll(); toast('Profile saved!','success');
 }
 async function saveAIConfig(){
-  const key=document.getElementById('cfg-key')?.value?.trim()||'';
-  S.cfg.model=document.getElementById('cfg-model')?.value||'gpt-4o';
+  const key=(document.getElementById('cfg-key')?.value||'').trim();
+  const gk=(document.getElementById('cfg-groq')?.value||'').trim();
+  const mdl=document.getElementById('cfg-model')?.value||'gemini-2.5-flash';
   S.cfg.persona=document.getElementById('cfg-persona')?.value||'system';
   apiKey=key;
+  groqKey=gk;
+  preferredModel=mdl;
   save();
+  updateInfoPanel();
   const resEl=document.getElementById('api-test-res');
-  if(!key){resEl.style.color='var(--red)';resEl.textContent='No API key entered.';return;}
-  resEl.style.color='var(--dim)';resEl.textContent='🔄 Testing connection...';
-  const r=await callAI([{role:'user',content:'Respond with exactly: SYSTEM ONLINE'}],true);
+  if(!key&&!gk){
+    resEl.style.color='var(--red)';
+    resEl.textContent='⚠ No API key entered. Add a Gemini key at aistudio.google.com or a Groq key at console.groq.com';
+    return;
+  }
+  if(key&&!key.startsWith('AIza')){
+    resEl.style.color='var(--orange)';
+    resEl.textContent='⚠ Gemini key format looks wrong. Should start with "AIza..." — double-check.';
+    return;
+  }
+  resEl.style.color='var(--dim)';
+  resEl.textContent=`🔄 Testing ${GEMINI_MODELS.find(m=>m.id===mdl)?.name||mdl} connection...`;
+  const r=await callAI([{role:'user',content:'Respond with exactly two words: SYSTEM ONLINE'}],true);
   if(r&&!r.startsWith('ERROR:')){
-    resEl.style.color='var(--green)';resEl.textContent='✓ Connected — '+r.trim();
+    resEl.style.color='var(--green)';
+    resEl.textContent=`✓ AI Connected (${lastUsedModel||mdl}) — `+r.trim().slice(0,50);
     document.getElementById('no-key-warn').style.display='none';
+    updateInfoPanel();
     toast('AI System connected!','success');
   } else {
-    resEl.style.color='var(--red)';resEl.textContent='✗ '+(r||'Connection failed. Check your API key.');
-    toast('Connection failed — check your key','error');
+    resEl.style.color='var(--red)';
+    resEl.textContent='✗ '+(r?.replace('ERROR:','')||'Connection failed. Check your key.');
+    toast('Connection failed — check your API key','error');
   }
+}
+function updateInfoPanel(){
+  const im=document.getElementById('info-model');
+  if(im) im.textContent=GEMINI_MODELS.find(m=>m.id===preferredModel)?.name||preferredModel;
+  const lm=document.getElementById('info-last-model');
+  if(lm) lm.textContent=lastUsedModel||'—';
+  const gk=document.getElementById('info-gkey');
+  if(gk){gk.textContent=apiKey?'⬤ SET':'○ NOT SET';gk.style.color=apiKey?'var(--green)':'var(--dim)';}
+  const grk=document.getElementById('info-groq-key');
+  if(grk){grk.textContent=groqKey?'⬤ SET':'○ NOT SET';grk.style.color=groqKey?'var(--green)':'var(--dim)';}
 }
 function toggleKeyVis(){
   const inp=document.getElementById('cfg-key');
@@ -1987,45 +2139,62 @@ function doReset(){
 }
 
 /* ============================================================
-   XP & LEVELING
+   XP & LEVELING — with level-up queue
 ============================================================ */
-function gainXP(amt,silent=false){
-  if(!amt||amt<=0) return;
-  S.xp=(S.xp||0)+amt;
-  S.life.totalXP=(S.life.totalXP||0)+amt;
-  let leveled=false;
-  while(S.xp>=XP_FOR_LEVEL(S.level)){
-    S.xp-=XP_FOR_LEVEL(S.level);
-    S.level++;
-    S.statPts=(S.statPts||0)+3;
-    leveled=true;
-    if(!silent) showLU(S.level);
-  }
-  checkRankUp();
-  checkAchiev();
-  save(); renderHUD();
-  if(S.level%5===0&&leveled) Object.keys(S.stats).forEach(k=>S.stats[k]+=5);
-}
-function checkRankUp(){
-  const ri=RANKS.indexOf(S.rank);
-  const nr=RANKS[ri+1];
-  if(nr&&S.level>=RANK_REQ_LEVEL[nr]){
-    const old=S.rank; S.rank=nr;
-    save();
-    setTimeout(()=>showRU(old,nr),2800);
-  }
-}
-function showLU(lv){
+const _luQueue=[];
+let _luShowing=false;
+function _nextLU(){
+  if(!_luQueue.length){_luShowing=false;return;}
+  _luShowing=true;
+  const lv=_luQueue.shift();
   const ov=document.getElementById('lu-overlay');
   document.getElementById('lu-num').textContent=lv;
   document.getElementById('lu-lbl').textContent=`${S.name||'HUNTER'} REACHES LEVEL ${lv}`;
   const rws=['+3 Stat Points Available','Your enemies grow stronger. So do you.'];
-  if(lv%5===0) rws.push(`⭐ Milestone! +10 ALL stats`);
-  document.getElementById('lu-rws').innerHTML=rws.map((r,i)=>`<div class="lu-rw" style="animation-delay:${.3+i*.2}s">${r}</div>`).join('');
+  if(lv%5===0) rws.push(`⭐ Milestone Bonus: +10 ALL stats!`);
+  document.getElementById('lu-rws').innerHTML=rws.map((r,i)=>`<div class="lu-rw" style="animation-delay:${.3+i*.18}s">${r}</div>`).join('');
   ov.classList.add('show');
   spawnParticles();
 }
-function closeLU(){document.getElementById('lu-overlay').classList.remove('show');}
+function showLU(lv){_luQueue.push(lv);if(!_luShowing)_nextLU();}
+function closeLU(){
+  document.getElementById('lu-overlay').classList.remove('show');
+  _luShowing=false;
+  setTimeout(_nextLU,350);
+}
+
+function gainXP(amt,silent=false){
+  if(!amt||amt<=0) return;
+  S.xp=(S.xp||0)+amt;
+  S.life.totalXP=(S.life.totalXP||0)+amt;
+  let leveledCount=0;
+  while(S.xp>=XP_FOR_LEVEL(S.level)){
+    S.xp-=XP_FOR_LEVEL(S.level);
+    S.level++;
+    S.statPts=(S.statPts||0)+3;
+    leveledCount++;
+    if(!silent) showLU(S.level);
+    if(S.level%5===0) Object.keys(S.stats).forEach(k=>S.stats[k]+=5);
+  }
+  checkRankUp();
+  checkAchiev();
+  save(); renderHUD();
+}
+function checkRankUp(){
+  let promoted = false;
+  let prevRank = S.rank;
+  while(true){
+    const ri = RANKS.indexOf(S.rank);
+    const nr = RANKS[ri+1];
+    if(!nr || S.level < RANK_REQ_LEVEL[nr]) break;
+    S.rank = nr;
+    promoted = true;
+  }
+  if(promoted){
+    save();
+    setTimeout(()=>showRU(prevRank, S.rank), 2800);
+  }
+}
 function showRU(from,to){
   const ov=document.getElementById('ru-overlay');
   const fromEl=document.getElementById('ru-from'),toEl=document.getElementById('ru-to');
@@ -2037,12 +2206,19 @@ function showRU(from,to){
 function closeRU(){document.getElementById('ru-overlay').classList.remove('show');save();renderAll();}
 function spawnParticles(){
   const c=document.getElementById('lu-particles');
+  if(!c) return;
   c.innerHTML='';
-  for(let i=0;i<50;i++){
+  for(let i=0;i<55;i++){
     const p=document.createElement('div');
     const col=['#ffd60a','#00d4ff','#9b5de5','#06ffa5','#ff3c6e'][Math.floor(Math.random()*5)];
-    const size=Math.random()*6+2;
-    p.style.cssText=`position:absolute;width:${size}px;height:${size}px;border-radius:50%;background:${col};left:${Math.random()*100}%;top:${Math.random()*100}%;animation:part-fly ${Math.random()*2+.8}s ease-out ${Math.random()*.5}s both;`;
+    const size=Math.random()*7+2;
+    const angle=Math.random()*Math.PI*2;
+    const dist=Math.random()*200+60;
+    const px=Math.round(Math.cos(angle)*dist);
+    const py=Math.round(Math.sin(angle)*dist - 80); // bias upward
+    const dur=(Math.random()*1.4+0.7).toFixed(2);
+    const delay=(Math.random()*0.5).toFixed(2);
+    p.style.cssText=`--px:${px}px;--py:${py}px;position:absolute;width:${size}px;height:${size}px;border-radius:50%;background:${col};left:${Math.random()*100}%;top:${Math.random()*60+20}%;animation:part-fly ${dur}s ease-out ${delay}s both;box-shadow:0 0 ${Math.ceil(size)}px ${col};`;
     c.appendChild(p);
   }
 }
@@ -2096,7 +2272,8 @@ function commitAlloc(){
 }
 
 /* ============================================================
-   AI SYSTEM
+   AI SYSTEM — MULTI-MODEL FALLBACK
+   Chain: gemini-2.5-flash → thinking → flash-8b → lite → 1.0-pro → Groq
 ============================================================ */
 const PERSONAS = {
   system:`You are THE SYSTEM — cold, calculating, omniscient. You speak in short, commanding, precise sentences. Call the user "Hunter." Use [SYSTEM] tags. NEVER be warm. You are pure power and logic. Use dramatic pauses (...). Uppercase for EMPHASIS. You exist only to make them stronger.`,
@@ -2115,59 +2292,161 @@ Hunter Data:
 - Stats: INT:${S.stats.int} STR:${S.stats.str} END:${S.stats.end} AGI:${S.stats.agi} PER:${S.stats.per} LUK:${S.stats.luk}
 - NEET: Physics ${ns.physPct}% | Chemistry ${ns.chemPct}% | Biology ${ns.bioPct}%
 - Exam Date: ${S.cfg.exam} (${Math.ceil((new Date(S.cfg.exam)-new Date())/86400000)} days away)
-- Today's study: ${(S.studySess||[]).filter(s=>s.date===new Date().toDateString()).reduce((a,b)=>a+b.mins,0)} minutes
+- Today's study: ${(S.studySess||[]).filter(s=>s.date===new Date().toDateString()).reduce((a,b)=>a+(b.mins||0),0)} minutes
 - Workout streak: ${S.wStreak||0} days | Login streak: ${S.streak||0} days
-- Mock tests: ${S.mocks.length} | Best: ${S.mocks.length?Math.max(...S.mocks.map(t=>t.score)):'None'}
+- Mock tests: ${(S.mocks||[]).length} | Best: ${(S.mocks||[]).length?Math.max(...(S.mocks||[]).map(t=>t.score||0)):'None'}
 - Total quests done: ${S.life.qDone} | Total study hours: ${Math.floor((S.life.studyMins||0)/60)}h
 
 Always be aware of NEET 2026. Be specific, actionable, and in-character.`;
 }
-async function callAI(messages,silent=false){
-  if(!apiKey){
-    if(!silent) toast('Add your OpenAI API key in Settings!','error');
-    return 'ERROR: No API key configured.';
-  }
-  try{
-    const res=await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-      body:JSON.stringify({
-        model:S.cfg?.model||'gpt-4o',
-        max_tokens:1000,
-        temperature:0.85,
-        messages:[{role:'system',content:getSystemPmt()},...messages]
-      })
-    });
-    if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      const msg=err?.error?.message||`HTTP ${res.status}`;
-      if(res.status===401) return 'ERROR: Invalid API key. Check Settings.';
-      if(res.status===429) return 'ERROR: Rate limit exceeded. Please wait and try again.';
-      if(res.status===402) return 'ERROR: Insufficient credits. Please top up your OpenAI account.';
-      return `ERROR: ${msg}`;
+// Convert internal chat history (OpenAI-style) to Gemini contents format.
+function toGeminiContents(messages){
+  const filtered=messages.filter(m=>m.role==='user'||m.role==='assistant');
+  if(!filtered.length) return [{role:'user',parts:[{text:'Hello'}]}];
+  let start=0;
+  while(start<filtered.length&&filtered[start].role!=='user') start++;
+  const trimmed=filtered.slice(start);
+  if(!trimmed.length) return [{role:'user',parts:[{text:'Hello'}]}];
+  const merged=[];
+  for(const m of trimmed){
+    const role=m.role==='assistant'?'model':'user';
+    if(merged.length&&merged[merged.length-1].role===role){
+      merged[merged.length-1].parts[0].text+='\n'+(m.content||'');
+    }else{
+      merged.push({role,parts:[{text:m.content||''}]});
     }
-    const data=await res.json();
-    return data?.choices?.[0]?.message?.content||'ERROR: Empty response from AI.';
-  }catch(e){
-    if(e.message?.includes('Failed to fetch')||e.message?.includes('NetworkError'))
-      return 'ERROR: Network error. Check your internet connection.';
-    return `ERROR: ${e.message||'Unknown error'}`;
   }
+  return merged;
+}
+
+async function _callGeminiModel(messages,modelId){
+  const endpoint=`https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const body={
+    systemInstruction:{parts:[{text:getSystemPmt()}]},
+    contents:toGeminiContents(messages),
+    generationConfig:{maxOutputTokens:1200,temperature:0.85,topP:0.95}
+  };
+  const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!res.ok){
+    let errMsg=`HTTP ${res.status}`;
+    try{const err=await res.json();errMsg=err?.error?.message||errMsg;}catch(_){}
+    if(res.status===429) return '__RATE_LIMIT__';
+    if(res.status===400) return 'ERROR: Bad request — check API key (should start with AIza...).';
+    if(res.status===403) return 'ERROR: API key invalid or not authorized. Check Settings.';
+    if(res.status===404) return '__MODEL_UNAVAILABLE__';
+    if(res.status>=500) return '__RATE_LIMIT__'; // treat server errors as transient
+    return `ERROR: ${errMsg}`;
+  }
+  const data=await res.json();
+  const candidate=data?.candidates?.[0];
+  if(!candidate) return 'ERROR: No response from Gemini. Try rephrasing.';
+  if(candidate.finishReason==='SAFETY') return 'ERROR: Response blocked by safety filter.';
+  const text=candidate?.content?.parts?.[0]?.text;
+  if(!text) return 'ERROR: Empty response from Gemini.';
+  return text;
+}
+
+async function _callGroqModel(messages){
+  const openAIMsgs=[
+    {role:'system',content:getSystemPmt()},
+    ...messages.filter(m=>m.role==='user'||m.role==='assistant')
+               .map(m=>({role:m.role==='assistant'?'assistant':'user',content:m.content||''}))
+  ];
+  const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${groqKey}`},
+    body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:openAIMsgs,max_tokens:1200,temperature:0.85})
+  });
+  if(!res.ok){
+    let errMsg=`HTTP ${res.status}`;
+    try{const err=await res.json();errMsg=err?.error?.message||errMsg;}catch(_){}
+    if(res.status===429) return '__RATE_LIMIT__';
+    return `ERROR: Groq — ${errMsg}`;
+  }
+  const data=await res.json();
+  const text=data?.choices?.[0]?.message?.content;
+  if(!text) return 'ERROR: Empty response from Groq.';
+  return text;
+}
+
+async function callAI(messages,silent=false){
+  if(!apiKey&&!groqKey){
+    if(!silent) toast('Add your API key in Settings → AI Config!','error');
+    return 'ERROR: No API key configured. Go to Settings and add your Gemini or Groq API key.';
+  }
+
+  // Build Gemini fallback chain starting from preferred model
+  if(apiKey){
+    const preferredIdx=GEMINI_MODELS.findIndex(m=>m.id===preferredModel);
+    const chain=[
+      ...GEMINI_MODELS.slice(preferredIdx>=0?preferredIdx:0),
+      ...GEMINI_MODELS.slice(0,preferredIdx>=0?preferredIdx:0)
+    ];
+    for(let i=0;i<chain.length;i++){
+      const model=chain[i];
+      let result;
+      try{
+        result=await _callGeminiModel(messages,model.id);
+      }catch(e){
+        if(e.name==='TypeError') return 'ERROR: Network error. Check your internet connection.';
+        result=`ERROR: ${e.message||'Unknown error'}`;
+      }
+      if(result==='__RATE_LIMIT__'||result==='__MODEL_UNAVAILABLE__'){
+        if(!silent&&i<chain.length-1){
+          toast(`⚡ ${model.name} busy — trying ${chain[i+1].name}...`,'info',2500);
+        }
+        continue;
+      }
+      if(!result.startsWith('ERROR:')){
+        lastUsedModel=model.name;
+        if(i>0&&!silent) toast(`✓ Response from ${model.name}`,'info',2000);
+        return result;
+      }
+      return result; // real error, don't retry
+    }
+  }
+
+  // Groq fallback
+  if(groqKey){
+    if(!silent) toast('⚡ All Gemini models busy — trying Groq LLaMA...','info',2500);
+    let result;
+    try{
+      result=await _callGroqModel(messages);
+    }catch(e){
+      return `ERROR: Network error — ${e.message}`;
+    }
+    if(result==='__RATE_LIMIT__') return 'ERROR: All models rate-limited. Wait 60 seconds and try again.';
+    if(!result.startsWith('ERROR:')){
+      lastUsedModel='Groq LLaMA 3.3 70B';
+      if(!silent) toast('✓ Response from Groq LLaMA','info',2000);
+      return result;
+    }
+    return result;
+  }
+
+  return 'ERROR: All AI models rate-limited. Please wait 60 seconds and try again.';
 }
 async function sendMsg(){
   const inp=document.getElementById('ai-input');
   const msg=(inp?.value||'').trim();
   if(!msg) return;
   inp.value='';
-  if(!apiKey){document.getElementById('no-key-warn').style.display='block';toast('Set your OpenAI API key in Settings!','warning');return;}
+  if(!apiKey&&!groqKey){
+    document.getElementById('no-key-warn').style.display='block';
+    toast('Add your API key in Settings → AI Config!','warning');
+    return;
+  }
   appendChat('user',msg);
   chatHist.push({role:'user',content:msg});
   const typing=appendTyping();
   const reply=await callAI(chatHist);
   typing.remove();
+  // update last model label
+  const lm=document.getElementById('ai-last-model-lbl');
+  if(lm) lm.textContent=lastUsedModel||'—';
   if(reply.startsWith('ERROR:')){
     appendChat('error',reply.replace('ERROR:','').trim());
-    chatHist.pop();
+    chatHist.pop(); // remove the user msg that caused error from history
   } else {
     appendChat('system',reply);
     chatHist.push({role:'assistant',content:reply});
@@ -2176,10 +2455,16 @@ async function sendMsg(){
 }
 function appendChat(role,content){
   const area=document.getElementById('ai-chat-area');
+  if(!area) return null;
   const cls=role==='user'?'msg-user':role==='error'?'msg-error':'msg-sys';
   const d=document.createElement('div');
   d.className=`chat-msg ${cls}`;
-  d.innerHTML=content.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  const safe=String(content||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\n/g,'<br>')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g,'<em>$1</em>');
+  d.innerHTML=safe;
   area.appendChild(d);
   area.scrollTop=area.scrollHeight;
   return d;
@@ -2203,32 +2488,41 @@ function clearChat(){
 }
 function initChatWelcome(){
   const area=document.getElementById('ai-chat-area');
-  if(!area) return;
+  if(!area||area.children.length>0) return;
   const p=S.cfg?.persona||'system';
+  const daysLeft=Math.max(0,Math.ceil((new Date(S.cfg.exam)-new Date())/86400000));
   const msgs={
-    system:`[SYSTEM]: Hunter ${S.name||'Unknown'} detected. Level ${S.level}, Rank ${S.rank}. NEET exam in ${Math.max(0,Math.ceil((new Date(S.cfg.exam)-new Date())/86400000))} days. ... I am watching. Ask anything, or use the Quick Commands. Your progress will not be forgotten.`,
-    monarch:`Ah... you have awakened. I sense potential in you, my shadow. I am the Shadow Monarch — your guide, your judge, your mentor. Level ${S.level} is merely the beginning. Speak your purpose.`,
-    drill:`ATTENTION, HUNTER! I am your Drill Sergeant. Level ${S.level} — that's NOTHING yet. We have ${Math.max(0,Math.ceil((new Date(S.cfg.exam)-new Date())/86400000))} days until NEET. GET MOVING. What do you need?!`,
-    elder:`Welcome, young ${S.name||'Hunter'}... I have waited long for one such as you. ${Math.max(0,Math.ceil((new Date(S.cfg.exam)-new Date())/86400000))} days remain before the NEET examination. In that time, entire destinies are written. What wisdom do you seek?`,
-    hype:`🔥🔥🔥 YO ${(S.name||'HUNTER').toUpperCase()}!!! LEVEL ${S.level} AND WE ARE JUST GETTING STARTED!!! ${Math.max(0,Math.ceil((new Date(S.cfg.exam)-new Date())/86400000))} DAYS TO NEET AND YOU ARE GOING TO ABSOLUTELY CRUSH IT!!! LET'S GOOOOO!!!`
+    system:`[SYSTEM]: Hunter ${S.name||'Unknown'} — Level ${S.level}, Rank ${S.rank}. NEET exam in ${daysLeft} days. ... I observe all. I judge all. Ask anything, use the Quick Commands, or I will generate your quests. Your progress is recorded. Failure is not tolerated.`,
+    monarch:`Ah... you have awakened, my shadow. I sense great potential within you. Level ${S.level} is merely the beginning of what you will become. I am your guide, your judge, your greatest ally. ${daysLeft} days remain until NEET. Speak your will.`,
+    drill:`ATTENTION HUNTER! This is your Drill Sergeant speaking! Level ${S.level} — that is NOTHING yet! We have ${daysLeft} days until NEET and every second counts! WHAT DO YOU NEED? MOVE MOVE MOVE!!!`,
+    elder:`Welcome, young ${S.name||'one'}... I have long awaited one such as you. ${daysLeft} days remain before the great examination. In the ancient scrolls it is written — the hunter who prepares with wisdom, conquers not just the test, but themselves. What wisdom do you seek today?`,
+    hype:`YO ${(S.name||'HUNTER').toUpperCase()}!!! 🔥🔥🔥 LEVEL ${S.level} AND WE ARE JUST GETTING STARTED!!! ${daysLeft} DAYS TO NEET AND YOU ARE GOING TO ABSOLUTELY DESTROY IT!!! I BELIEVE IN YOU 1000%!!! LET'S GOOOOO!!! WHAT DO YOU NEED?!!! ⚡⚡⚡`
   };
   appendChat('system',msgs[p]||msgs.system);
 }
 async function aiCmd(cmd){
-  if(!apiKey){toast('Add your OpenAI API key in Settings!','warning');return;}
+  if(!apiKey&&!groqKey){toast('Add your API key in Settings → AI Config!','warning');return;}
   navTo('ai');
+  const ns=neetStats();
+  const nextRankIdx=RANKS.indexOf(S.rank)+1;
+  const nextRank=RANKS[nextRankIdx]||'MAX';
+  const nextRankLv=RANK_REQ_LEVEL[nextRank]||999;
   const cmds={
-    analyze:`Analyze my performance as a Hunter. Be specific and brutal. Physics ${neetStats().physPct}%, Chemistry ${neetStats().chemPct}%, Biology ${neetStats().bioPct}%. Workout streak: ${S.wStreak||0}. Login streak: ${S.streak||0}. Level ${S.level}, Rank ${S.rank}. Give me a clear assessment and what I must do next.`,
-    gen_quests:`Generate 6 powerful daily quests for me right now. Include 2 NEET study quests, 2 workout quests, 1 discipline/mindset quest, 1 wildcard. Make them specific, challenging, and inspiring. Format: NAME | Description | XP | Stat Bonus`,
-    study_plan:`Create my 7-day NEET study plan starting tomorrow. Physics: ${neetStats().physPct}% done, Chemistry: ${neetStats().chemPct}% done, Biology: ${neetStats().bioPct}% done. Focus on weakest areas. Assign chapters to specific days. Include study hours, breaks, and strategy.`,
-    workout_plan:`Design my complete weekly workout program. I need to stay fit for NEET focus — consider my energy levels. Level ${S.level}, STR:${S.stats.str}, END:${S.stats.end}. Create push/pull/legs or similar split with exact exercises, sets, reps. Make it intense but sustainable.`,
-    motivate:`I need EMERGENCY motivation right now. I'm not performing well. Level ${S.level}, Rank ${S.rank}. ${neetStats().physPct}% physics done. Push me beyond my limits. Make me WANT to get up and attack my goals. Don't hold back.`,
-    rank_up:`Assess my path to Rank ${RANKS[RANKS.indexOf(S.rank)+1]||'MAX'}. I'm at Level ${S.level}, need Level ${RANK_REQ_LEVEL[RANKS[RANKS.indexOf(S.rank)+1]]||'MAX'}. Stats: INT:${S.stats.int} STR:${S.stats.str} END:${S.stats.end}. Give me the exact roadmap to rank up.`
+    analyze:`Analyze my Hunter performance in detail. Physics: ${ns.physPct}%, Chemistry: ${ns.chemPct}%, Biology: ${ns.bioPct}%. Workout streak: ${S.wStreak||0} days. Login streak: ${S.streak||0} days. Level ${S.level}, Rank ${S.rank}. Mock tests done: ${(S.mocks||[]).length}. Give me a ruthlessly honest assessment and exact next steps.`,
+    gen_quests:`Generate 6 powerful quests for me. Include 2 NEET study quests, 2 workout quests, 1 discipline quest, 1 wildcard. Make each specific, challenging, and motivating. Format: QUEST NAME | Description | XP amount | Which stat it improves`,
+    study_plan:`Create my 7-day NEET study plan starting tomorrow. Physics: ${ns.physPct}% done, Chemistry: ${ns.chemPct}% done, Biology: ${ns.bioPct}% done. Focus on my weakest subject first. Assign specific chapters to specific days. Include daily hours, break schedule, and revision strategy.`,
+    workout_plan:`Design my complete weekly workout program. I need peak physical fitness for mental performance in NEET. Level ${S.level}, STR:${S.stats.str}, END:${S.stats.end}. Give me a full push/pull/legs or similar split with exact exercises, sets, reps. Make it brutal but achievable.`,
+    motivate:`I need EMERGENCY MOTIVATION right now. I am struggling to stay consistent. Level ${S.level}, Rank ${S.rank}. Only ${Math.max(0,Math.ceil((new Date(S.cfg.exam)-new Date())/86400000))} days to NEET. ${ns.physPct}% physics done. Push me beyond every limit. Make me feel unstoppable.`,
+    rank_up:`I want to reach Rank ${nextRank}. I am Level ${S.level} and need Level ${nextRankLv}. Stats: INT:${S.stats.int} STR:${S.stats.str} END:${S.stats.end} AGI:${S.stats.agi}. Give me the exact XP roadmap, which quests to focus on, and what I need to do daily to rank up fast.`
   };
-  appendChat('user',cmds[cmd]);
-  chatHist.push({role:'user',content:cmds[cmd]});
+  const userMsg=cmds[cmd];
+  if(!userMsg) return;
+  appendChat('user',userMsg);
+  // Build fresh context - don't use potentially corrupted chatHist for quick commands
+  const freshHist=[{role:'user',content:userMsg}];
+  chatHist.push({role:'user',content:userMsg});
   const typing=appendTyping();
-  const reply=await callAI(chatHist);
+  const reply=await callAI(freshHist);
   typing.remove();
   if(reply.startsWith('ERROR:')){
     appendChat('error',reply.replace('ERROR:','').trim());
@@ -2237,12 +2531,12 @@ async function aiCmd(cmd){
     appendChat('system',reply);
     chatHist.push({role:'assistant',content:reply});
     save();
-    // extract insight
-    document.getElementById('ai-insights-el').innerHTML=`<div class="sq" style="font-size:12px;">${reply.slice(0,200).replace(/\n/g,'<br>')}...</div>`;
+    const insEl=document.getElementById('ai-insights-el');
+    if(insEl) insEl.innerHTML=`<div class="sq" style="font-size:12px;">${esc(reply.slice(0,220))}...</div>`;
   }
 }
 async function generateAIQuests(){
-  if(!apiKey){toast('Add your OpenAI API key in Settings first!','warning');navTo('settings');return;}
+  if(!apiKey&&!groqKey){toast('Add your API key in Settings first!','warning');navTo('settings');return;}
   const btn=document.getElementById('gen-ai-q-btn');
   if(btn){btn.disabled=true;btn.textContent='⚡ GENERATING...';}
   document.getElementById('ai-quest-bar').style.display='block';
@@ -2293,7 +2587,7 @@ Rules:
   }
 }
 async function genAIWorkout(){
-  if(!apiKey){toast('Add your OpenAI API key in Settings first!','warning');navTo('settings');return;}
+  if(!apiKey&&!groqKey){toast('Add your API key in Settings first!','warning');navTo('settings');return;}
   toast('⚡ Generating workout...','info');
   const prompt=`Generate a workout plan for Hunter level ${S.level}, STR:${S.stats.str}, END:${S.stats.end}.
 Return ONLY valid JSON, no markdown:
@@ -2356,6 +2650,16 @@ function navTo(id){
 function renderAITab(){
   const area=document.getElementById('ai-chat-area');
   if(!area) return;
+  const warn=document.getElementById('no-key-warn');
+  if(warn) warn.style.display=(apiKey||groqKey)?'none':'block';
+  // update model bar
+  const ml=document.getElementById('ai-model-label');
+  if(ml){
+    const pm=GEMINI_MODELS.find(m=>m.id===preferredModel)?.name||preferredModel;
+    ml.textContent=apiKey?`⚡ ${pm} → fallback chain active`:(groqKey?'🦙 Groq LLaMA (no Gemini key)':'⚠ No key set');
+  }
+  const lm=document.getElementById('ai-last-model-lbl');
+  if(lm) lm.textContent=lastUsedModel||'—';
   if(!area.children.length) initChatWelcome();
 }
 function toggleNav(){
@@ -2422,6 +2726,10 @@ function obNext(step){
   if(step===3){
     S.cfg.exam=document.getElementById('ob-exam')?.value||'2026-05-03';
     S.cfg.studyMins=parseInt(document.getElementById('ob-goal')?.value)||360;
+    const prep=document.getElementById('ob-prep')?.value||'beginner';
+    // Apply prep level bonus to starting stat points
+    const prepBonus={beginner:0,intermediate:5,advanced:10};
+    S.statPts=(S.statPts||5)+(prepBonus[prep]||0);
   }
   document.getElementById(`obs-${step}`)?.classList.remove('active');
   document.getElementById(`obs-${step+1}`)?.classList.add('active');
@@ -2435,7 +2743,9 @@ function obNext(step){
 }
 function obSaveKey(){
   const k=document.getElementById('ob-key')?.value?.trim();
+  const gk=document.getElementById('ob-groq-key')?.value?.trim();
   if(k){apiKey=k;localStorage.setItem('arise3_key',k);}
+  if(gk){groqKey=gk;localStorage.setItem('arise3_groq_key',gk);}
   obNext(4);
 }
 function completeOnboarding(){
@@ -2443,11 +2753,15 @@ function completeOnboarding(){
   if(!S.titles.includes('awakened')) S.titles.push('awakened');
   S.eqTitle='awakened';
   S.statPts=5;
+  ensurePermanentDailyQuests();
   save();
   document.getElementById('ob-modal').style.display='none';
   renderAll();
-  setTimeout(()=>{showLU(1);toast(`⚡ Welcome, ${S.name}! Your legend begins now.`,'success');},800);
-  if(apiKey) setTimeout(()=>generateAIQuests(),4000);
+  setTimeout(()=>{
+    toast(`⚡ Welcome, ${S.name}! Your legend begins now. Rise, Hunter.`,'success',6000);
+    sysAlert('Hunter registration complete. Level 1. Rank E. Daily trials have been assigned. The journey begins.');
+  },600);
+  if(apiKey) setTimeout(()=>generateAIQuests(),3000);
 }
 
 /* ============================================================
@@ -2520,7 +2834,15 @@ function esc(s){
 ============================================================ */
 (function(){
   const style=document.createElement('style');
-  style.textContent=`@keyframes part-fly{from{transform:translateY(0)scale(1);opacity:1;}to{transform:translateY(-150px) translateX(${Math.random()>0.5?'':'-'}80px) scale(0);opacity:0;}} .mt1{margin-top:6px;} .mt2{margin-top:12px;}`;
+  // Part-fly uses CSS custom props set inline per particle
+  style.textContent=`
+    @keyframes part-fly{
+      from{transform:translate(0,0) scale(1);opacity:1;}
+      to{transform:translate(var(--px),var(--py)) scale(0);opacity:0;}
+    }
+    .mt1{margin-top:6px;}
+    .mt2{margin-top:12px;}
+  `;
   document.head.appendChild(style);
 })();
 
